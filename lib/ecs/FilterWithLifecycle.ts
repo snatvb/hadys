@@ -22,6 +22,9 @@ export class FilterWithLifecycle extends Filter {
   }
 
   deleteEntity(entity: Entity): boolean {
+    if (!this.entities.has(entity)) {
+      return false
+    }
     this.onDisappeared(entity, this.entities.get(entity)!.components)
     return super.deleteEntity(entity)
   }

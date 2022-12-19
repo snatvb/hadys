@@ -18,7 +18,7 @@ class SimpleMoveSystem extends hadys.ECS.System(Symbol('SimpleMoveSystem')) {
   }
 }
 
-export function run(view: HTMLCanvasElement) {
+export function startGame(view: HTMLCanvasElement) {
   let intervalId: number = 0
   ;(async () => {
     const engine = hadys.create()

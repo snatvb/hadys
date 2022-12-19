@@ -164,12 +164,23 @@ const benchAmount = () => {
 
 const benchmark = () => {
   const engine = hadys.create()
+  const corePlugin = hadys.plugins.core.create(engine.world)
+  const renderPlugin = hadys.plugins.render.create(engine, {
+    size: {
+      width: 800,
+      height: 600,
+    },
+    view: document.createElement('canvas'),
+  })
+  engine.world.setExtensions([...corePlugin.extensions])
   engine.world.setSystems([
+    ...corePlugin.systems,
     new SystemCounter(),
     new SystemMove(),
     new SystemBack(),
     new ReCreateSystem(),
     new SystemReset(),
+    ...renderPlugin.systems,
   ])
   for (let i = 0; i < 1000; i++) {
     createSomeEntity(engine.world)

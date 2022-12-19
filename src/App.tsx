@@ -1,13 +1,17 @@
 import { useEffect, useRef } from 'react'
 import './App.css'
-import { run } from './game'
-// import { run } from './benchmark'
+import { startGame } from './game'
+import { run } from './benchmark'
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    return run(canvasRef.current!)
+    return run()
+  }, [])
+
+  useEffect(() => {
+    return startGame(canvasRef.current!)
   }, [])
 
   return (
