@@ -1,6 +1,6 @@
 import { hadys } from '../lib/main'
 
-class Position extends hadys.ECS.DirtyComponent {
+class Position extends hadys.core.components.DirtyComponent {
   private _x: number = 0
   private _y: number = 0
 

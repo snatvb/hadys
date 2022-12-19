@@ -1,6 +1,8 @@
-import { ECS } from '../../ecs'
+import { DirtyComponent } from './extensions/dirties'
 
-export class Vec2 extends ECS.DirtyComponent {
+export { DirtyComponent }
+
+export class Vec2 extends DirtyComponent {
   private _x: number = 0
 
   public get x(): number {
@@ -54,7 +56,7 @@ export class Vec2 extends ECS.DirtyComponent {
 export class Transform extends Vec2 {}
 export class Scale extends Vec2 {}
 
-export class Rotation extends ECS.DirtyComponent {
+export class Rotation extends DirtyComponent {
   private _angle: number = 0
 
   public get angle(): number {

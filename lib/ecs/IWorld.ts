@@ -1,6 +1,7 @@
 import { BaseComponentClass, Component } from './component'
 import { ComponentContainer } from './ComponentContainer'
 import { Entity } from './entity'
+import { IExtension } from './IExtension'
 import { ISystem } from './ISystem'
 
 export interface IWorld {
@@ -11,4 +12,6 @@ export interface IWorld {
   removeComponent(entity: Entity, componentClass: BaseComponentClass): void
   update(): void
   setSystems(systems: ISystem[]): void
+  setExtensions(extensions: IExtension[]): void
+  addExtension(extension: IExtension): void
 }

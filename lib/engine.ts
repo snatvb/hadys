@@ -1,7 +1,9 @@
 import { Assets } from './assets'
 import { ECS } from './ecs'
+export * from './plugins/core'
+import * as plugins from './plugins'
 
-export { ECS }
+export { ECS, plugins }
 
 export const create = () => {
   const assets = new Assets()

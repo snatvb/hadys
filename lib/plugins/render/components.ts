@@ -15,7 +15,7 @@ export class Sprites<
 }
 
 export class Container extends ECS.Component {
-  constructor(public container: PIXI.Container) {
+  constructor(public container: PIXI.Container = new PIXI.Container()) {
     super()
   }
 }

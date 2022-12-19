@@ -42,6 +42,7 @@ export class SyncContainerSystem extends ECS.System(
     for (const item of this._filters.sprites) {
       const transform = item.components.get(core.components.Transform)!
       if (transform.dirty) {
+        console.log('update')
         const { container } = item.components.get(components.Container)!
         container.position.set(transform.x, transform.y)
       }

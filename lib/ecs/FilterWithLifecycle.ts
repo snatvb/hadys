@@ -9,11 +9,14 @@ export class FilterWithLifecycle extends Filter {
     () => {}
 
   update(entity: Entity, components: ComponentContainer): boolean {
+    const was = this.entities.has(entity)
     const appeared = super.update(entity, components)
     if (appeared) {
       this.onAppeared(entity, components)
     } else {
-      this.onDisappeared(entity, components)
+      if (was) {
+        this.onDisappeared(entity, components)
+      }
     }
     return appeared
   }
