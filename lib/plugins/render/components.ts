@@ -1,5 +1,5 @@
-import * as PIXI from 'pixi.js'
 import { ECS } from '../../ecs'
+import { PIXI } from './dependencies'
 
 export type Resource = {
   name: string
