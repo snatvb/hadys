@@ -1,13 +1,12 @@
 import * as PIXI from 'pixi.js'
 import { ECS } from '../../ecs'
-import { HadysContext } from '../../shared-interfaces'
 
 export type Resource = {
   name: string
   path: string
 }
 
-export class SpritesComponent<
+export class Sprites<
   T extends Record<string, PIXI.Sprite> = Record<string, PIXI.Sprite>,
 > extends ECS.Component {
   constructor(public sprites: T) {
@@ -15,7 +14,7 @@ export class SpritesComponent<
   }
 }
 
-export class ContainerComponent extends ECS.Component {
+export class Container extends ECS.Component {
   constructor(public container: PIXI.Container) {
     super()
   }
