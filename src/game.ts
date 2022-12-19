@@ -42,7 +42,7 @@ export function startGame(view: HTMLCanvasElement) {
       sprites: {
         logo: {
           name: 'logo',
-          path: 'hadys.png',
+          path: '/logo.png',
         },
       },
     })
