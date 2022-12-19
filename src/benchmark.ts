@@ -83,7 +83,7 @@ class SystemLogger extends hadys.ECS.System(Symbol('logger')) {
   update() {
     for (const filter of this._filters.positions) {
       const component = filter.components.get(Position)!
-      if (component.dirty === false) {
+      if (component.x === 0) {
         continue
       }
     }
@@ -100,19 +100,6 @@ class SystemCounter extends hadys.ECS.System(Symbol('counter')) {
   update() {
     for (const _ of this._filters.any) {
       SystemCounter.count++
-    }
-  }
-}
-
-class SystemReset extends hadys.ECS.System(Symbol('reset')) {
-  _filters = {
-    positions: new hadys.ECS.Filter([new hadys.ECS.Includes([Position])]),
-  }
-
-  update() {
-    for (const filter of this._filters.positions) {
-      const component = filter.components.get(Position)!
-      component.resetDirty()
     }
   }
 }
@@ -179,7 +166,6 @@ const benchmark = () => {
     new SystemMove(),
     new SystemBack(),
     new ReCreateSystem(),
-    new SystemReset(),
     ...renderPlugin.systems,
   ])
   for (let i = 0; i < 1000; i++) {

@@ -9,49 +9,48 @@ export class DirtyComponent {
 
   resetDirty(): void {
     this._dirty = false
+    DirtiesExtension.$$dirties.delete(this)
   }
 
   protected _markDirty(): void {
     this._dirty = true
+    DirtiesExtension.$$dirties.add(this)
   }
 }
 
 export class DirtiesExtension implements ECS.IExtension {
-  private _dirtyComponents = new Map<ECS.Entity, Set<ECS.BaseComponentClass>>()
+  public static $$dirties: Set<DirtyComponent> = new Set()
 
   constructor(private _world: ECS.IWorld) {}
 
-  addEntity(entity: ECS.Entity): void {
-    this._dirtyComponents.set(entity, new Set())
-  }
+  addEntity(entity: ECS.Entity): void {}
 
   removeEntity(entity: ECS.Entity): void {
-    this._dirtyComponents.delete(entity)
-  }
-
-  addComponent(entity: ECS.Entity, component: ECS.Component): void {
-    if (component instanceof DirtyComponent) {
-      this._dirtyComponents
-        .get(entity)!
-        .add(component.constructor as ECS.BaseComponentClass)
+    const components = this._world.getComponents(entity)
+    if (components) {
+      for (let component of components.values()) {
+        if (component instanceof DirtyComponent) {
+          DirtiesExtension.$$dirties.delete(component)
+        }
+      }
     }
   }
+
+  addComponent(entity: ECS.Entity, component: ECS.Component): void {}
 
   removeComponent(
     entity: ECS.Entity,
     componentClass: ECS.BaseComponentClass,
   ): void {
-    this._dirtyComponents.get(entity)!.delete(componentClass)
+    const component = this._world.getComponents(entity)!.get(componentClass)!
+    if (component instanceof DirtyComponent) {
+      DirtiesExtension.$$dirties.delete(component)
+    }
   }
 
   update(): void {
-    for (let [entity, constructors] of this._dirtyComponents) {
-      for (let constructor of constructors) {
-        const dirtyComponent = this._world
-          .getComponents(entity)!
-          .get(constructor)! as DirtyComponent
-        dirtyComponent.resetDirty()
-      }
+    for (let dirtyComponent of DirtiesExtension.$$dirties) {
+      dirtyComponent.resetDirty()
     }
   }
 }
