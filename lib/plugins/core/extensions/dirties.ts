@@ -1,7 +1,7 @@
 import { ECS } from '../../../ecs'
 
 export class DirtyComponent {
-  protected _dirty = false
+  protected _dirty = true
 
   public get dirty(): boolean {
     return this._dirty

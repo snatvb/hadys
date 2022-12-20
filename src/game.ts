@@ -1,24 +1,25 @@
 import { hadys } from '../lib/main'
 
+class FPSTag extends hadys.ECS.Component {}
+class MovableTag extends hadys.ECS.Component {}
+
 class SimpleMoveSystem extends hadys.ECS.System(Symbol('SimpleMoveSystem')) {
   _filters = {
-    transforms: new hadys.ECS.Filter([
-      new hadys.ECS.Includes([hadys.core.components.Position]),
+    positions: new hadys.ECS.Filter([
+      new hadys.ECS.Includes([hadys.core.components.Position, MovableTag]),
     ]),
   }
 
   update() {
-    for (const filter of this._filters.transforms) {
-      const transform = filter.components.get(hadys.core.components.Position)!
-      if (transform.x === 0) {
+    for (const filter of this._filters.positions) {
+      const position = filter.components.get(hadys.core.components.Position)!
+      if (position.x === 0) {
         continue
       }
-      transform.set((transform.x + 2) % 100, (transform.y + 2) % 100)
+      position.set((position.x + 2) % 100, (position.y + 2) % 100)
     }
   }
 }
-
-class FPSTag extends hadys.ECS.Component {}
 
 class FPSDisplaySystem extends hadys.ECS.System('FPSDisplaySystem') {
   _filters = {
@@ -60,6 +61,7 @@ export function startGame(view: HTMLCanvasElement) {
   ;(async () => {
     const engine = hadys.create()
     const corePlugin = hadys.plugins.core.create(engine.world)
+    const physicsPlugin = hadys.plugins.physics.create({ engine: {} })
     const renderPlugin = hadys.plugins.render.create(engine, {
       size: {
         width: 800,
@@ -70,6 +72,7 @@ export function startGame(view: HTMLCanvasElement) {
 
     engine.world.setExtensions([...corePlugin.extensions])
     engine.world.setSystems([
+      ...physicsPlugin.systems,
       new SimpleMoveSystem(),
       new FPSDisplaySystem(),
       ...renderPlugin.systems,
@@ -89,11 +92,21 @@ export function startGame(view: HTMLCanvasElement) {
     const rootEntity = engine.world.addEntity()
     addMainSprite(engine, rootEntity)
 
+    const entityContainer = createContainer(engine, { x: 400, y: 200 })
+    engine.world.addComponent(
+      entityContainer,
+      new hadys.plugins.physics.components.Body(
+        hadys.plugins.physics.Bodies.circle(50, 50, 50),
+      ),
+    )
+
     const entity = engine.world.addEntity()
     engine.world.addComponent(
       entity,
-      new hadys.core.components.Hierarchy(rootEntity),
+      new hadys.core.components.Hierarchy(entityContainer),
     )
+    const sprite = addSpriteLogo(engine, entityContainer)
+    sprite.object.scale.set(0.5)
 
     intervalId = window.setInterval(() => {
       engine.world.update()
@@ -116,6 +129,7 @@ export function startGame(view: HTMLCanvasElement) {
       entity,
       new hadys.core.components.Hierarchy(rootEntity),
     )
+    engine.world.addComponent(entity, new MovableTag())
 
     addSpriteLogo(engine, entity)
     addTitle(engine, entity)

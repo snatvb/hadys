@@ -101,10 +101,10 @@ export class SyncContainerSystem extends ECS.System(
 
   update() {
     for (const item of this._filters.containers) {
-      const transform = item.components.get(core.components.Position)!
-      if (transform.dirty) {
+      const position = item.components.get(core.components.Position)!
+      if (position.dirty) {
         const { container } = item.components.get(components.Container)!
-        container.position.set(transform.x, transform.y)
+        container.position.set(position.x, position.y)
       }
     }
   }
