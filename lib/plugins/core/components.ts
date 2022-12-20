@@ -1,81 +1,62 @@
 import { ECS } from '../../ecs'
+import { Dirty } from './Dirty'
 import { DirtyComponent } from './extensions/dirties'
+import { Vec2 } from './geometry'
 
 export { DirtyComponent }
 
-export class Vec2 extends DirtyComponent {
-  private _x: number = 0
-
-  public get x(): number {
-    return this._x
-  }
-
-  private _y: number = 0
-  public get y(): number {
-    return this._y
-  }
-
-  constructor(x: number, y: number) {
-    super()
-    this._x = x
-    this._y = y
-  }
-
-  set(x: number, y: number) {
-    this._x = x
-    this._y = y
-    this._markDirty()
-  }
-
-  setShadow(x: number, y: number) {
-    this._x = x
-    this._y = y
-  }
-
-  magnitude(): number {
-    return Math.sqrt(this._x * this._x + this._y * this._y)
-  }
-
-  normalize(): Vec2 {
-    const magnitude = this.magnitude()
-    return new Vec2(this._x / magnitude, this._y / magnitude)
-  }
-
-  add(other: Vec2): Vec2 {
-    return new Vec2(this._x + other.x, this._y + other.y)
-  }
-
-  subtract(other: Vec2): Vec2 {
-    return new Vec2(this._x - other.x, this._y - other.y)
-  }
-
-  multiply(other: Vec2): Vec2 {
-    return new Vec2(this._x * other.x, this._y * other.y)
-  }
-}
-
-export class Position extends Vec2 {}
-export class Scale extends Vec2 {}
-
-export class Rotation extends DirtyComponent {
+export class Rotation {
+  public dirty = new Dirty()
   private _angle: number = 0
 
   public get angle(): number {
     return this._angle
   }
 
-  constructor(angle: number) {
-    super()
+  constructor(angle: number = 0) {
     this._angle = angle
   }
 
   set(value: number) {
     this._angle = value
-    this._markDirty()
+    this.dirty.mark()
   }
 
   setShadow(value: number) {
     this._angle = value
+  }
+}
+
+export class Transform extends DirtyComponent {
+  position: Vec2 = new Vec2()
+  scale: Vec2 = new Vec2(1, 1)
+  rotation: Rotation = new Rotation()
+
+  get dirty(): boolean {
+    return (
+      this.position.dirty.is ||
+      this.scale.dirty.is ||
+      this.rotation.dirty.is ||
+      super.dirty
+    )
+  }
+
+  constructor(
+    position: Vec2 = new Vec2(),
+    scale: Vec2 = new Vec2(1, 1),
+    rotation: Rotation = new Rotation(),
+  ) {
+    super()
+    this.position = position
+    this.scale = scale
+    this.rotation = rotation
+  }
+
+  resetDirty(): void {
+    this.position.dirty.reset()
+    this.scale.dirty.reset()
+    this.rotation.dirty.reset()
+    super.resetDirty()
   }
 }
 

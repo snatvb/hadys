@@ -4,8 +4,9 @@ import { OneFramesExtension } from './extensions/one-frames'
 import { TimeSystem } from './systems'
 
 import * as components from './components'
+import * as geometry from './geometry'
 
-export { components }
+export { components, geometry }
 
 export const create = (world: IWorld) => {
   return {

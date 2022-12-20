@@ -5,14 +5,16 @@ class MovableTag extends hadys.ECS.Component {}
 
 class SimpleMoveSystem extends hadys.ECS.System(Symbol('SimpleMoveSystem')) {
   _filters = {
-    positions: new hadys.ECS.Filter([
-      new hadys.ECS.Includes([hadys.core.components.Position, MovableTag]),
+    transforms: new hadys.ECS.Filter([
+      new hadys.ECS.Includes([hadys.core.components.Transform, MovableTag]),
     ]),
   }
 
   update() {
-    for (const filter of this._filters.positions) {
-      const position = filter.components.get(hadys.core.components.Position)!
+    for (const filter of this._filters.transforms) {
+      const { position } = filter.components.get(
+        hadys.core.components.Transform,
+      )!
       if (position.x === 0) {
         continue
       }
@@ -220,19 +222,20 @@ export function startGame(view: HTMLCanvasElement) {
       entity,
       new hadys.plugins.render.components.Container(),
     )
+    const transformPosition = hadys.core.geometry.Vec2.from(position)
     engine.world.addComponent(
       entity,
-      new hadys.core.components.Position(position.x, position.y),
+      new hadys.core.components.Transform(transformPosition),
     )
-    engine.world.update()
+
     return entity
   }
 
   function createFloor(engine: hadys.Engine) {
     const entityContainer = createContainer(engine, { x: 0, y: 585 })
-    const pos = engine.world
+    engine.world
       .getComponents(entityContainer)!
-      .get(hadys.core.components.Position)!
+      .get(hadys.core.components.Transform)!
 
     const body = hadys.plugins.physics.Bodies.rectangle(0, 0, 800, 30, {
       isStatic: true,

@@ -9,7 +9,7 @@ export class PhysicsSystem extends ECS.System('Hadys::PhysicsSystem') {
       new ECS.Includes([core.components.WorldTimeTag, core.components.Time]),
     ]),
     bodies: new ECS.FilterWithLifecycle([
-      new ECS.Includes([components.Body, core.components.Position]),
+      new ECS.Includes([components.Body, core.components.Transform]),
     ]),
   }
 
@@ -18,7 +18,7 @@ export class PhysicsSystem extends ECS.System('Hadys::PhysicsSystem') {
 
     this._filters.bodies.onAppeared = (entity, cc) => {
       const body = cc.get(components.Body)!.value
-      const position = cc.get(core.components.Position)!
+      const { position } = cc.get(core.components.Transform)!
       Matter.Body.setPosition(
         body,
         Matter.Vector.create(position.x, position.y),
@@ -50,8 +50,8 @@ export class PhysicsSystem extends ECS.System('Hadys::PhysicsSystem') {
 
     for (const filter of this._filters.bodies) {
       const body = filter.components.get(components.Body)!.value
-      const position = filter.components.get(core.components.Position)!
-      position.set(body.position.x, body.position.y)
+      const transform = filter.components.get(core.components.Transform)!
+      transform.position.set(body.position.x, body.position.y)
     }
   }
 }

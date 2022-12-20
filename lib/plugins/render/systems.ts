@@ -15,7 +15,7 @@ export class SyncContainerSystem extends ECS.System(
       new ECS.Includes([
         components.Container,
         core.components.Hierarchy,
-        core.components.Position,
+        core.components.Transform,
       ]),
     ]),
   }
@@ -101,10 +101,12 @@ export class SyncContainerSystem extends ECS.System(
 
   update() {
     for (const item of this._filters.containers) {
-      const position = item.components.get(core.components.Position)!
-      if (position.dirty) {
+      const transform = item.components.get(core.components.Transform)!
+      if (transform.dirty) {
         const { container } = item.components.get(components.Container)!
-        container.position.set(position.x, position.y)
+        container.position.set(transform.position.x, transform.position.y)
+        container.scale.set(transform.scale.x, transform.scale.y)
+        container.angle = transform.rotation.angle
       }
     }
   }
