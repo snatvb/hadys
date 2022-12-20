@@ -5,13 +5,16 @@ import * as components from './components'
 import { RenderApp } from './interfaces'
 
 export class SyncContainerSystem extends ECS.System(
-  Symbol('Hadys::ResourceSystem'),
+  'Hadys::SyncContainerSystem',
 ) {
   _filters = {
     sprites: new ECS.FilterWithLifecycle([
+      new ECS.Includes([components.Sprite, core.components.Hierarchy]),
+    ]),
+    containers: new ECS.FilterWithLifecycle([
       new ECS.Includes([
-        components.Sprites,
         components.Container,
+        core.components.Hierarchy,
         core.components.Transform,
       ]),
     ]),
@@ -20,29 +23,86 @@ export class SyncContainerSystem extends ECS.System(
   constructor(private _app: RenderApp) {
     super()
 
-    this._filters.sprites.onAppeared = (_, cc) => {
-      const { sprites } = cc.get(components.Sprites<Record<string, Sprite>>)!
-      const { container } = cc.get(components.Container)!
+    this._addSpritesLifecycle()
+    this._addContainersLifecycle()
+  }
 
-      for (const sprite of Object.values(sprites)) {
-        container.addChild(sprite)
+  private _getParentWithContainer(hierarchy: core.components.Hierarchy) {
+    if (hierarchy.parent) {
+      const ccParent = this.world.getComponents(hierarchy.parent)!
+      if (!ccParent.has(components.Container)) {
+        return undefined
+      }
+      const { container: containerParent } = ccParent.get(components.Container)!
+      const hierarchyParent = ccParent.get(core.components.Hierarchy)!
+      return {
+        container: containerParent,
+        hierarchy: hierarchyParent,
+      }
+    }
+    return undefined
+  }
+
+  private _addContainersLifecycle() {
+    const createHandleLifecycle =
+      (kind: 'onAppeared' | 'onDisappeared') =>
+      (entity: ECS.Entity, cc: ECS.ComponentContainer) => {
+        const hierarchy = cc.get(core.components.Hierarchy)!
+        const { container } = cc.get(components.Container)!
+        const parent = this._getParentWithContainer(hierarchy)
+        if (kind === 'onAppeared') {
+          if (parent) {
+            parent.hierarchy.addChild(entity)
+            parent.container.addChild(container)
+          } else {
+            this._app.pixi.stage.addChild(container)
+          }
+        } else {
+          if (parent) {
+            parent.hierarchy.removeChild(entity)
+            parent.container.removeChild(container)
+          } else {
+            this._app.pixi.stage.removeChild(container)
+          }
+        }
       }
 
-      this._app.pixi.stage.addChild(container)
-    }
+    this._filters.containers.onAppeared = createHandleLifecycle('onAppeared')
+    this._filters.containers.onDisappeared =
+      createHandleLifecycle('onDisappeared')
+  }
 
-    this._filters.sprites.onDisappeared = (_, cc) => {
-      const { container } = cc.get(components.Container)!
+  private _addSpritesLifecycle() {
+    const createHandleLifecycle =
+      (kind: 'onAppeared' | 'onDisappeared') =>
+      (entity: ECS.Entity, cc: ECS.ComponentContainer) => {
+        const hierarchy = cc.get(core.components.Hierarchy)!
+        const { sprite } = cc.get(components.Sprite)!
 
-      this._app.pixi.stage.removeChild(container)
-    }
+        if (!hierarchy.parent) {
+          return console.warn('Sprite has no parent')
+        }
+
+        const ccParent = this.world.getComponents(hierarchy.parent)!
+        const { container } = ccParent.get(components.Container)!
+        const hierarchyParent = ccParent.get(core.components.Hierarchy)!
+        if (kind === 'onAppeared') {
+          container.addChild(sprite)
+          hierarchyParent.children.add(entity)
+        } else {
+          container.removeChild(sprite)
+          hierarchyParent.children.delete(entity)
+        }
+      }
+
+    this._filters.sprites.onAppeared = createHandleLifecycle('onAppeared')
+    this._filters.sprites.onDisappeared = createHandleLifecycle('onDisappeared')
   }
 
   update() {
-    for (const item of this._filters.sprites) {
+    for (const item of this._filters.containers) {
       const transform = item.components.get(core.components.Transform)!
       if (transform.dirty) {
-        console.log('update')
         const { container } = item.components.get(components.Container)!
         container.position.set(transform.x, transform.y)
       }

@@ -1,3 +1,4 @@
+import { ECS } from '../../ecs'
 import { DirtyComponent } from './extensions/dirties'
 
 export { DirtyComponent }
@@ -75,5 +76,20 @@ export class Rotation extends DirtyComponent {
 
   setShadow(value: number) {
     this._angle = value
+  }
+}
+
+export class Hierarchy extends ECS.Component {
+  children: Set<ECS.Entity> = new Set()
+  constructor(public parent: ECS.Entity | null = null) {
+    super()
+  }
+
+  addChild(child: ECS.Entity) {
+    this.children.add(child)
+  }
+
+  removeChild(child: ECS.Entity) {
+    this.children.delete(child)
   }
 }

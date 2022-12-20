@@ -6,10 +6,8 @@ export type Resource = {
   path: string
 }
 
-export class Sprites<
-  T extends Record<string, PIXI.Sprite> = Record<string, PIXI.Sprite>,
-> extends ECS.Component {
-  constructor(public sprites: T) {
+export class Sprite extends ECS.Component {
+  constructor(public sprite: PIXI.Sprite) {
     super()
   }
 }

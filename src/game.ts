@@ -47,32 +47,52 @@ export function startGame(view: HTMLCanvasElement) {
       },
     })
 
+    const rootEntity = engine.world.addEntity()
+
+    const entity = createContainer(engine, { x: 10, y: 10 })
+
+    engine.world.addComponent(
+      entity,
+      new hadys.core.components.Hierarchy(rootEntity),
+    )
+
     const sprite = new hadys.plugins.render.Sprite(
       engine.assets.get('logo') as any,
     )
-    const entity = engine.world.addEntity()
+    const spriteEntity = engine.world.addEntity()
     engine.world.addComponent(
-      entity,
-      new hadys.plugins.render.components.Sprites({
-        logo: sprite,
-      }),
+      spriteEntity,
+      new hadys.plugins.render.components.Sprite(sprite),
     )
+    engine.world.addComponent(
+      spriteEntity,
+      new hadys.core.components.Hierarchy(entity),
+    )
+
+    intervalId = setInterval(() => {
+      engine.world.update()
+    }, 16)
+  })()
+
+  return () => {
+    clearInterval(intervalId)
+  }
+
+  function createContainer(
+    engine: ReturnType<typeof hadys.create>,
+    position: { x: number; y: number },
+  ) {
+    const entity = engine.world.addEntity()
+    engine.world.addComponent(entity, new hadys.core.components.Hierarchy())
     engine.world.addComponent(
       entity,
       new hadys.plugins.render.components.Container(),
     )
     engine.world.addComponent(
       entity,
-      new hadys.core.components.Transform(100, 100),
+      new hadys.core.components.Transform(position.x, position.y),
     )
     engine.world.update()
-
-    intervalId = setInterval(() => {
-      engine.world.update()
-    }, 50)
-  })()
-
-  return () => {
-    clearInterval(intervalId)
+    return entity
   }
 }
