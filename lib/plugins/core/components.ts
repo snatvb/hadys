@@ -54,7 +54,7 @@ export class Vec2 extends DirtyComponent {
   }
 }
 
-export class Transform extends Vec2 {}
+export class Position extends Vec2 {}
 export class Scale extends Vec2 {}
 
 export class Rotation extends DirtyComponent {

@@ -3,13 +3,13 @@ import { hadys } from '../lib/main'
 class SimpleMoveSystem extends hadys.ECS.System(Symbol('SimpleMoveSystem')) {
   _filters = {
     transforms: new hadys.ECS.Filter([
-      new hadys.ECS.Includes([hadys.core.components.Transform]),
+      new hadys.ECS.Includes([hadys.core.components.Position]),
     ]),
   }
 
   update() {
     for (const filter of this._filters.transforms) {
-      const transform = filter.components.get(hadys.core.components.Transform)!
+      const transform = filter.components.get(hadys.core.components.Position)!
       if (transform.x === 0) {
         continue
       }
@@ -90,7 +90,7 @@ export function startGame(view: HTMLCanvasElement) {
     )
     engine.world.addComponent(
       entity,
-      new hadys.core.components.Transform(position.x, position.y),
+      new hadys.core.components.Position(position.x, position.y),
     )
     engine.world.update()
     return entity

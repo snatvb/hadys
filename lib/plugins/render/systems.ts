@@ -15,7 +15,7 @@ export class SyncContainerSystem extends ECS.System(
       new ECS.Includes([
         components.Container,
         core.components.Hierarchy,
-        core.components.Transform,
+        core.components.Position,
       ]),
     ]),
   }
@@ -101,7 +101,7 @@ export class SyncContainerSystem extends ECS.System(
 
   update() {
     for (const item of this._filters.containers) {
-      const transform = item.components.get(core.components.Transform)!
+      const transform = item.components.get(core.components.Position)!
       if (transform.dirty) {
         const { container } = item.components.get(components.Container)!
         container.position.set(transform.x, transform.y)
