@@ -17,16 +17,33 @@ export interface IComponentRemovable {
   removeComponent(entity: Entity, componentClass: BaseComponentClass): void
 }
 
-export interface IUpdatable {
-  update(): void
+export interface IBeforeUpdatable {
+  beforeUpdate(): void
+}
+
+export interface IAfterUpdatable {
+  afterUpdate(): void
 }
 
 export type IExtension = Partial<
-  IAddable & IRemovable & IComponentAddable & IComponentRemovable & IUpdatable
+  IAddable &
+    IRemovable &
+    IComponentAddable &
+    IComponentRemovable &
+    IAfterUpdatable &
+    IBeforeUpdatable
 >
 
-export const isUpdatable = (extension: IExtension): extension is IUpdatable => {
-  return 'update' in extension
+export const isAfterUpdatable = (
+  extension: IExtension,
+): extension is IAfterUpdatable => {
+  return 'afterUpdate' in extension
+}
+
+export const isBeforeUpdatable = (
+  extension: IExtension,
+): extension is IBeforeUpdatable => {
+  return 'beforeUpdate' in extension
 }
 
 export const isAddable = (extension: IExtension): extension is IAddable => {

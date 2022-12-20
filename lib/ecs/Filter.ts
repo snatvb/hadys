@@ -7,6 +7,11 @@ import { IRule } from './rules'
 export class Filter implements IFilter, Iterable<FilterItem> {
   entities = new Map<Entity, FilterItem>()
   system!: ISystem
+
+  get size(): number {
+    return this.entities.size
+  }
+
   constructor(private readonly _rules: IRule[]) {}
 
   update(entity: Entity, components: ComponentContainer): boolean {

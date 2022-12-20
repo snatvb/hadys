@@ -116,7 +116,10 @@ export function startGame(view: HTMLCanvasElement) {
     engine.world.addComponent(
       entityContainer,
       new hadys.plugins.physics.components.Body(
-        hadys.plugins.physics.Bodies.circle(50, 50, sprite.object.width / 2),
+        hadys.plugins.physics.Bodies.circle(50, 50, sprite.object.width / 2, {
+          friction: 2,
+          restitution: 0,
+        }),
       ),
     )
     createFloor(engine)
@@ -232,7 +235,7 @@ export function startGame(view: HTMLCanvasElement) {
   }
 
   function createFloor(engine: hadys.Engine) {
-    const entityContainer = createContainer(engine, { x: 0, y: 585 })
+    const entityContainer = createContainer(engine, { x: 400, y: 585 })
     engine.world
       .getComponents(entityContainer)!
       .get(hadys.core.components.Transform)!
@@ -240,6 +243,7 @@ export function startGame(view: HTMLCanvasElement) {
     const body = hadys.plugins.physics.Bodies.rectangle(0, 0, 800, 30, {
       isStatic: true,
     })
+
     engine.world.addComponent(
       entityContainer,
       new hadys.plugins.physics.components.Body(body),

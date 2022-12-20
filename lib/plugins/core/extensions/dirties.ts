@@ -34,6 +34,12 @@ export class DirtiesExtension implements ECS.IExtension {
     }
   }
 
+  addComponent(entity: ECS.Entity, component: ECS.Component): void {
+    if (component instanceof DirtyComponent) {
+      DirtiesExtension.$$dirties.add(component)
+    }
+  }
+
   removeComponent(
     entity: ECS.Entity,
     componentClass: ECS.BaseComponentClass,
@@ -44,7 +50,7 @@ export class DirtiesExtension implements ECS.IExtension {
     }
   }
 
-  update(): void {
+  afterUpdate(): void {
     for (let dirtyComponent of DirtiesExtension.$$dirties) {
       dirtyComponent.resetDirty()
     }

@@ -2,16 +2,18 @@ import { BaseComponentClass, Component } from './component'
 import { ComponentContainer } from './ComponentContainer'
 import {
   IAddable,
+  IAfterUpdatable,
+  IBeforeUpdatable,
   IComponentAddable,
   IComponentRemovable,
   IExtension,
   IRemovable,
   isAddable,
+  isAfterUpdatable,
+  isBeforeUpdatable,
   isComponentAddable,
   isComponentRemovable,
   isRemovable,
-  isUpdatable,
-  IUpdatable,
 } from './IExtension'
 import { Entity, START_ENTITY_ID } from './entity'
 import { sortSystems } from './helpers'
@@ -19,7 +21,8 @@ import { ISystem } from './ISystem'
 import { IWorld } from './IWorld'
 
 const initExtensions = () => ({
-  updatable: new Set<IUpdatable>(),
+  afterUpdatable: new Set<IAfterUpdatable>(),
+  beforeUpdatable: new Set<IBeforeUpdatable>(),
   addable: new Set<IAddable>(),
   removable: new Set<IRemovable>(),
   componentAddable: new Set<IComponentAddable>(),
@@ -91,8 +94,11 @@ export class World implements IWorld {
   }
 
   addExtension(extension: IExtension): void {
-    if (isUpdatable(extension)) {
-      this._extensions.updatable.add(extension)
+    if (isBeforeUpdatable(extension)) {
+      this._extensions.beforeUpdatable.add(extension)
+    }
+    if (isAfterUpdatable(extension)) {
+      this._extensions.afterUpdatable.add(extension)
     }
     if (isAddable(extension)) {
       this._extensions.addable.add(extension)
@@ -109,10 +115,15 @@ export class World implements IWorld {
   }
 
   update(): void {
-    this._extensions.updatable.forEach((extension) => extension.update())
+    this._extensions.beforeUpdatable.forEach((extension) =>
+      extension.beforeUpdate(),
+    )
     for (let system of this._systems) {
       system.update()
     }
+    this._extensions.afterUpdatable.forEach((extension) =>
+      extension.afterUpdate(),
+    )
 
     while (this._entitiesToDestroy.length > 0) {
       this._destroyEntity(this._entitiesToDestroy.pop()!)

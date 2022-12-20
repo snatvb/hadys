@@ -1,5 +1,3 @@
-import { Dirty } from './Dirty'
-
 export class Vec2 {
   private _x: number = 0
 
@@ -12,8 +10,6 @@ export class Vec2 {
     return this._y
   }
 
-  public dirty = new Dirty()
-
   static from(other: { x: number; y: number }): Vec2 {
     return new Vec2(other.x, other.y)
   }
@@ -23,10 +19,15 @@ export class Vec2 {
     this._y = y
   }
 
+  onChanged = () => {}
+
   set(x: number, y: number) {
+    if (this._x === x && this._y === y) {
+      return
+    }
     this._x = x
     this._y = y
-    this.dirty.mark()
+    this.onChanged()
   }
 
   setShadow(x: number, y: number) {
@@ -53,5 +54,9 @@ export class Vec2 {
 
   multiply(other: Vec2): Vec2 {
     return new Vec2(this._x * other.x, this._y * other.y)
+  }
+
+  toString(): string {
+    return `Vec2(${this._x}, ${this._y})`
   }
 }

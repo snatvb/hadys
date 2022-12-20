@@ -106,7 +106,7 @@ export class SyncContainerSystem extends ECS.System(
         const { container } = item.components.get(components.Container)!
         container.position.set(transform.position.x, transform.position.y)
         container.scale.set(transform.scale.x, transform.scale.y)
-        container.angle = transform.rotation.angle
+        container.rotation = transform.rotation.angle
       }
     }
   }

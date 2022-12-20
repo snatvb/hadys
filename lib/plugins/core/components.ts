@@ -6,24 +6,32 @@ import { Vec2 } from './geometry'
 export { DirtyComponent }
 
 export class Rotation {
-  public dirty = new Dirty()
-  private _angle: number = 0
+  private _angleRad: number = 0
 
   public get angle(): number {
-    return this._angle
+    return this._angleRad
   }
 
-  constructor(angle: number = 0) {
-    this._angle = angle
+  public get angleDeg(): number {
+    return (this._angleRad * 180) / Math.PI
   }
+
+  constructor(angleRad: number = 0) {
+    this._angleRad = angleRad
+  }
+
+  onChanged = () => {}
 
   set(value: number) {
-    this._angle = value
-    this.dirty.mark()
+    if (this._angleRad === value) {
+      return
+    }
+    this._angleRad = value
+    this.onChanged()
   }
 
   setShadow(value: number) {
-    this._angle = value
+    this._angleRad = value
   }
 }
 
@@ -31,15 +39,6 @@ export class Transform extends DirtyComponent {
   position: Vec2 = new Vec2()
   scale: Vec2 = new Vec2(1, 1)
   rotation: Rotation = new Rotation()
-
-  get dirty(): boolean {
-    return (
-      this.position.dirty.is ||
-      this.scale.dirty.is ||
-      this.rotation.dirty.is ||
-      super.dirty
-    )
-  }
 
   constructor(
     position: Vec2 = new Vec2(),
@@ -50,13 +49,11 @@ export class Transform extends DirtyComponent {
     this.position = position
     this.scale = scale
     this.rotation = rotation
-  }
 
-  resetDirty(): void {
-    this.position.dirty.reset()
-    this.scale.dirty.reset()
-    this.rotation.dirty.reset()
-    super.resetDirty()
+    const markDirty = this._markDirty.bind(this)
+    this.position.onChanged = markDirty
+    this.scale.onChanged = markDirty
+    this.rotation.onChanged = markDirty
   }
 }
 

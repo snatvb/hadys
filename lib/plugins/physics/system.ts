@@ -52,6 +52,7 @@ export class PhysicsSystem extends ECS.System('Hadys::PhysicsSystem') {
       const body = filter.components.get(components.Body)!.value
       const transform = filter.components.get(core.components.Transform)!
       transform.position.set(body.position.x, body.position.y)
+      transform.rotation.set(body.angle)
     }
   }
 }

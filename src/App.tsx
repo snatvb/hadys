@@ -6,9 +6,9 @@ import { run } from './benchmark'
 function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  useEffect(() => {
-    return run()
-  }, [])
+  // useEffect(() => {
+  //   return run()
+  // }, [])
 
   useEffect(() => {
     return startGame(canvasRef.current!)
