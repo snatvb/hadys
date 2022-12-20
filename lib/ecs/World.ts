@@ -1,5 +1,6 @@
-import { BaseComponentClass, Component, DirtyComponent } from './component'
+import { BaseComponentClass, Component } from './component'
 import { ComponentContainer } from './ComponentContainer'
+import { IExtension } from './IExtension'
 import { Entity, START_ENTITY_ID } from './entity'
 import { sortSystems } from './helpers'
 import { ISystem } from './ISystem'
@@ -8,6 +9,7 @@ import { IWorld } from './IWorld'
 export class World implements IWorld {
   private _entities = new Map<Entity, ComponentContainer>()
   private _systems = new Set<ISystem>()
+  private _extensions = new Set<IExtension>()
 
   private _nextEntityID = START_ENTITY_ID
   private _entitiesToDestroy: Entity[] = []
@@ -20,15 +22,20 @@ export class World implements IWorld {
     let entity = this._nextEntityID
     this._nextEntityID++
     this._entities.set(entity, new ComponentContainer())
+    this._extensions.forEach((extension) => extension.addEntity(entity))
     return entity
   }
 
   removeEntity(entity: Entity): void {
     this._entitiesToDestroy.push(entity)
+    this._extensions.forEach((extension) => extension.removeEntity(entity))
   }
 
   addComponent(entity: Entity, component: Component): void {
     this._entities.get(entity)!.add(component)
+    this._extensions.forEach((extension) =>
+      extension.addComponent(entity, component),
+    )
 
     this._updateEntity(entity)
   }
@@ -39,6 +46,9 @@ export class World implements IWorld {
 
   removeComponent(entity: Entity, componentClass: BaseComponentClass): void {
     this._entities.get(entity)!.delete(componentClass)
+    this._extensions.forEach((extension) =>
+      extension.removeComponent(entity, componentClass),
+    )
     this._updateEntity(entity)
   }
 
@@ -51,7 +61,16 @@ export class World implements IWorld {
     }
   }
 
+  setExtensions(extensions: IExtension[]): void {
+    this._extensions = new Set(extensions)
+  }
+
+  addExtension(extension: IExtension): void {
+    this._extensions.add(extension)
+  }
+
   update(): void {
+    this._extensions.forEach((extension) => extension.update())
     for (let system of this._systems) {
       system.update()
     }

@@ -1,218 +1,116 @@
 import { hadys } from '../lib/main'
 
-class Position extends hadys.ECS.DirtyComponent {
-  private _x: number = 0
-  private _y: number = 0
-
-  public get x(): number {
-    return this._x
-  }
-
-  public get y(): number {
-    return this._y
-  }
-
-  public set x(value: number) {
-    if (this._x === value) {
-      return
-    }
-    this._markDirty()
-    this._x = value
-  }
-
-  public set y(value: number) {
-    if (this._y === value) {
-      return
-    }
-    this._markDirty()
-    this._y = value
-  }
-}
-
-class AliveTimer extends hadys.ECS.Component {
-  public ticks: number = 0
-
-  public update(): void {
-    this.ticks++
-  }
-}
-
-class Any extends hadys.ECS.Component {}
-
-class SystemMove extends hadys.ECS.System(Symbol('test')) {
+class SimpleMoveSystem extends hadys.ECS.System(Symbol('SimpleMoveSystem')) {
   _filters = {
-    positions: new hadys.ECS.Filter([new hadys.ECS.Includes([Position])]),
+    transforms: new hadys.ECS.Filter([
+      new hadys.ECS.Includes([hadys.core.components.Position]),
+    ]),
   }
 
   update() {
-    for (const filter of this._filters.positions) {
-      const component = filter.components.get(Position)!
-      if (component.x === 0 || component.x >= 200) {
+    for (const filter of this._filters.transforms) {
+      const transform = filter.components.get(hadys.core.components.Position)!
+      if (transform.x === 0) {
         continue
       }
-      component.x += 50
-      component.y += 2
-    }
-  }
-}
-class SystemBack extends hadys.ECS.System(Symbol('test')) {
-  _filters = {
-    positions: new hadys.ECS.Filter([new hadys.ECS.Includes([Position])]),
-  }
-  counter = 0
-
-  update() {
-    this.counter++
-    for (const filter of this._filters.positions) {
-      if (this.counter % 10 === 0) {
-        const component = filter.components.get(Position)!
-        component.x = 0
-        component.y = 0
-      }
+      transform.set((transform.x + 2) % 100, (transform.y + 2) % 100)
     }
   }
 }
 
-class SystemLogger extends hadys.ECS.System(Symbol('logger')) {
-  _filters = {
-    positions: new hadys.ECS.Filter([new hadys.ECS.Includes([Position])]),
+export function startGame(view: HTMLCanvasElement) {
+  let intervalId: number = 0
+  ;(async () => {
+    const engine = hadys.create()
+    const corePlugin = hadys.plugins.core.create(engine.world)
+    const renderPlugin = hadys.plugins.render.create(engine, {
+      size: {
+        width: 800,
+        height: 600,
+      },
+      view,
+    })
+
+    engine.world.setExtensions([...corePlugin.extensions])
+    engine.world.setSystems([
+      new SimpleMoveSystem(),
+      ...renderPlugin.systems,
+      ...corePlugin.systems,
+    ])
+
+    await engine.assets.loadResources({
+      sprites: {
+        logo: {
+          name: 'logo',
+          path: '/logo.png',
+        },
+      },
+    })
+
+    const rootEntity = engine.world.addEntity()
+
+    const entity = createContainer(engine, { x: 10, y: 10 })
+
+    engine.world.addComponent(
+      entity,
+      new hadys.core.components.Hierarchy(rootEntity),
+    )
+
+    const sprite = new hadys.plugins.render.Sprite(
+      engine.assets.get('logo') as any,
+    )
+    const spriteEntity = engine.world.addEntity()
+    engine.world.addComponent(
+      spriteEntity,
+      new hadys.plugins.render.components.DisplayObject(sprite),
+    )
+    engine.world.addComponent(
+      spriteEntity,
+      new hadys.core.components.Hierarchy(entity),
+    )
+
+    const text = new hadys.plugins.render.Text('Hadys', {
+      fontFamily: 'Arial',
+      align: 'center',
+      fontSize: 24,
+      fill: 0xeeeeee,
+    })
+    text.anchor.set(0.5)
+    text.position.set(100, 100)
+    const textEntity = engine.world.addEntity()
+    engine.world.addComponent(
+      textEntity,
+      new hadys.plugins.render.components.DisplayObject(text),
+    )
+    engine.world.addComponent(
+      textEntity,
+      new hadys.core.components.Hierarchy(entity),
+    )
+
+    intervalId = setInterval(() => {
+      engine.world.update()
+    }, 16)
+  })()
+
+  return () => {
+    clearInterval(intervalId)
   }
 
-  sort = { type: 'after', system: SystemMove.Type } as const
-
-  update() {
-    for (const filter of this._filters.positions) {
-      const component = filter.components.get(Position)!
-      if (component.dirty === false) {
-        continue
-      }
-    }
-  }
-}
-
-class SystemCounter extends hadys.ECS.System(Symbol('counter')) {
-  static count = 0
-  _filters = {
-    any: new hadys.ECS.Filter([new hadys.ECS.Includes([Any])]),
-  }
-  sort = { type: 'after', system: SystemMove.Type } as const
-
-  update() {
-    for (const _ of this._filters.any) {
-      SystemCounter.count++
-    }
-  }
-}
-
-class SystemReset extends hadys.ECS.System(Symbol('reset')) {
-  _filters = {
-    positions: new hadys.ECS.Filter([new hadys.ECS.Includes([Position])]),
-  }
-
-  update() {
-    for (const filter of this._filters.positions) {
-      const component = filter.components.get(Position)!
-      component.resetDirty()
-    }
-  }
-}
-
-class ReCreateSystem extends hadys.ECS.System(Symbol('reset')) {
-  static recreateCount = 0
-  _filters = {
-    alive: new hadys.ECS.Filter([new hadys.ECS.Includes([AliveTimer])]),
-  }
-
-  update() {
-    let removed = 0
-    for (const filter of this._filters.alive) {
-      const alive = filter.components.get(AliveTimer)!
-      alive.update()
-      if (alive.ticks > 100) {
-        removed++
-        this.world.removeEntity(filter.entity)
-      }
-    }
-    for (let i = 0; i < removed; i++) {
-      createSomeEntity(this.world)
-      ReCreateSystem.recreateCount++
-    }
-  }
-}
-
-function formatNumber(num: number) {
-  return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1 ')
-}
-
-const bench = (fn: () => void) => {
-  const start = performance.now()
-  const target = start + 1000
-  while (performance.now() < target) {
-    fn()
-  }
-}
-
-const benchAmount = () => {
-  const start = performance.now()
-  const target = start + 1000
-  let amount = 0
-  while (performance.now() < target) {
-    amount++
-  }
-  return amount
-}
-
-const benchmark = () => {
-  const engine = hadys.create()
-  engine.world.setSystems([
-    new SystemCounter(),
-    new SystemMove(),
-    new SystemBack(),
-    new ReCreateSystem(),
-    new SystemReset(),
-  ])
-  for (let i = 0; i < 1000; i++) {
-    createSomeEntity(engine.world)
-  }
-  for (let i = 0; i < 1000; i++) {
+  function createContainer(
+    engine: ReturnType<typeof hadys.create>,
+    position: { x: number; y: number },
+  ) {
     const entity = engine.world.addEntity()
-    engine.world.addComponent(entity, new Any())
+    engine.world.addComponent(entity, new hadys.core.components.Hierarchy())
+    engine.world.addComponent(
+      entity,
+      new hadys.plugins.render.components.Container(),
+    )
+    engine.world.addComponent(
+      entity,
+      new hadys.core.components.Position(position.x, position.y),
+    )
+    engine.world.update()
+    return entity
   }
-
-  // engine.world.update()
-  bench(engine.world.update.bind(engine.world))
-  console.log(`ECS Updates: ${formatNumber(SystemCounter.count)} ops/sec`)
-  console.log(`ECS Recreate: ${formatNumber(ReCreateSystem.recreateCount)}`)
-}
-
-export const run = () => {
-  console.log('run...')
-  const engine = hadys.create()
-  engine.world.setSystems([new SystemLogger(), new SystemMove()])
-  const entity = createSomeEntity(engine.world)
-  for (let i = 0; i < 50; i++) {
-    createSomeEntity(engine.world)
-  }
-  const component = engine.world.getComponents(entity)?.get(Position)!
-  component.x = 100
-  const entity2 = engine.world.addEntity()
-  engine.world.addComponent(entity2, new Position())
-  // const id = setInterval(() => {
-  //   engine.world.update()
-  // }, 16)
-
-  benchmark()
-
-  // return () => {
-  //   clearInterval(id)
-  // }
-}
-function createSomeEntity(world: hadys.ECS.IWorld) {
-  const entity = world.addEntity()
-  const component = new Position()
-  component.x = Math.random() > 0.5 ? 100 : 0
-  world.addComponent(entity, component)
-  world.addComponent(entity, new Any())
-  world.addComponent(entity, new AliveTimer())
-  return entity
 }
