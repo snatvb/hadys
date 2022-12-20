@@ -62,10 +62,28 @@ export function startGame(view: HTMLCanvasElement) {
     const spriteEntity = engine.world.addEntity()
     engine.world.addComponent(
       spriteEntity,
-      new hadys.plugins.render.components.Sprite(sprite),
+      new hadys.plugins.render.components.DisplayObject(sprite),
     )
     engine.world.addComponent(
       spriteEntity,
+      new hadys.core.components.Hierarchy(entity),
+    )
+
+    const text = new hadys.plugins.render.Text('Hadys', {
+      fontFamily: 'Arial',
+      align: 'center',
+      fontSize: 24,
+      fill: 0xeeeeee,
+    })
+    text.anchor.set(0.5)
+    text.position.set(100, 100)
+    const textEntity = engine.world.addEntity()
+    engine.world.addComponent(
+      textEntity,
+      new hadys.plugins.render.components.DisplayObject(text),
+    )
+    engine.world.addComponent(
+      textEntity,
       new hadys.core.components.Hierarchy(entity),
     )
 

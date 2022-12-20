@@ -8,8 +8,8 @@ export class SyncContainerSystem extends ECS.System(
   'Hadys::SyncContainerSystem',
 ) {
   _filters = {
-    sprites: new ECS.FilterWithLifecycle([
-      new ECS.Includes([components.Sprite, core.components.Hierarchy]),
+    objects: new ECS.FilterWithLifecycle([
+      new ECS.Includes([components.DisplayObject, core.components.Hierarchy]),
     ]),
     containers: new ECS.FilterWithLifecycle([
       new ECS.Includes([
@@ -77,7 +77,7 @@ export class SyncContainerSystem extends ECS.System(
       (kind: 'onAppeared' | 'onDisappeared') =>
       (entity: ECS.Entity, cc: ECS.ComponentContainer) => {
         const hierarchy = cc.get(core.components.Hierarchy)!
-        const { sprite } = cc.get(components.Sprite)!
+        const { object } = cc.get(components.DisplayObject)!
 
         if (!hierarchy.parent) {
           return console.warn('Sprite has no parent')
@@ -87,16 +87,16 @@ export class SyncContainerSystem extends ECS.System(
         const { container } = ccParent.get(components.Container)!
         const hierarchyParent = ccParent.get(core.components.Hierarchy)!
         if (kind === 'onAppeared') {
-          container.addChild(sprite)
+          container.addChild(object)
           hierarchyParent.children.add(entity)
         } else {
-          container.removeChild(sprite)
+          container.removeChild(object)
           hierarchyParent.children.delete(entity)
         }
       }
 
-    this._filters.sprites.onAppeared = createHandleLifecycle('onAppeared')
-    this._filters.sprites.onDisappeared = createHandleLifecycle('onDisappeared')
+    this._filters.objects.onAppeared = createHandleLifecycle('onAppeared')
+    this._filters.objects.onDisappeared = createHandleLifecycle('onDisappeared')
   }
 
   update() {

@@ -2,7 +2,7 @@ import { PIXI } from './dependencies'
 import { Config, Dependencies, RenderApp } from './interfaces'
 import { SyncContainerSystem } from './systems'
 
-export { Sprite } from 'pixi.js'
+export { Sprite, Text } from 'pixi.js'
 
 export * as components from './components'
 export * as systems from './systems'
