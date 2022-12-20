@@ -69,14 +69,19 @@ export function startGame(view: HTMLCanvasElement) {
       },
       view,
     })
+    const debugPlugin = hadys.plugins.debug.create(
+      physicsPlugin.engine,
+      renderPlugin.app,
+    )
 
     engine.world.setExtensions([...corePlugin.extensions])
     engine.world.setSystems([
       ...physicsPlugin.systems,
       new SimpleMoveSystem(),
       new FPSDisplaySystem(),
-      ...renderPlugin.systems,
       ...corePlugin.systems,
+      ...renderPlugin.systems,
+      ...debugPlugin.systems,
     ])
     hadys.core.entities.time(engine.world)
 
@@ -86,6 +91,10 @@ export function startGame(view: HTMLCanvasElement) {
           name: 'logo',
           path: '/logo.png',
         },
+        danger: {
+          name: 'danger',
+          path: '/danger.png',
+        },
       },
     })
 
@@ -93,20 +102,22 @@ export function startGame(view: HTMLCanvasElement) {
     addMainSprite(engine, rootEntity)
 
     const entityContainer = createContainer(engine, { x: 400, y: 200 })
-    engine.world.addComponent(
-      entityContainer,
-      new hadys.plugins.physics.components.Body(
-        hadys.plugins.physics.Bodies.circle(50, 50, 50),
-      ),
-    )
 
     const entity = engine.world.addEntity()
     engine.world.addComponent(
       entity,
       new hadys.core.components.Hierarchy(entityContainer),
     )
-    const sprite = addSpriteLogo(engine, entityContainer)
+    const sprite = addSprite(engine, entityContainer, 'danger')
+    sprite.object.anchor.set(0.5)
     sprite.object.scale.set(0.5)
+    engine.world.addComponent(
+      entityContainer,
+      new hadys.plugins.physics.components.Body(
+        hadys.plugins.physics.Bodies.circle(50, 50, sprite.object.width / 2),
+      ),
+    )
+    createFloor(engine)
 
     intervalId = window.setInterval(() => {
       engine.world.update()
@@ -131,14 +142,18 @@ export function startGame(view: HTMLCanvasElement) {
     )
     engine.world.addComponent(entity, new MovableTag())
 
-    addSpriteLogo(engine, entity)
+    addSprite(engine, entity)
     addTitle(engine, entity)
     addFPSText(engine, entity)
   }
 
-  function addSpriteLogo(engine: hadys.Engine, entity: number) {
+  function addSprite(
+    engine: hadys.Engine,
+    entity: number,
+    name: string = 'logo',
+  ) {
     const sprite = new hadys.plugins.render.Sprite(
-      engine.assets.get('logo') as any,
+      engine.assets.get(name) as any,
     )
     const spriteEntity = engine.world.addEntity()
     const display =
@@ -208,6 +223,38 @@ export function startGame(view: HTMLCanvasElement) {
     engine.world.addComponent(
       entity,
       new hadys.core.components.Position(position.x, position.y),
+    )
+    engine.world.update()
+    return entity
+  }
+
+  function createFloor(engine: hadys.Engine) {
+    const entityContainer = createContainer(engine, { x: 0, y: 585 })
+    const pos = engine.world
+      .getComponents(entityContainer)!
+      .get(hadys.core.components.Position)!
+
+    const body = hadys.plugins.physics.Bodies.rectangle(0, 0, 800, 30, {
+      isStatic: true,
+    })
+    engine.world.addComponent(
+      entityContainer,
+      new hadys.plugins.physics.components.Body(body),
+    )
+
+    const entity = engine.world.addEntity()
+    engine.world.addComponent(
+      entity,
+      new hadys.core.components.Hierarchy(entityContainer),
+    )
+    const graphics = new hadys.plugins.render.Graphics()
+    graphics.pivot.set(400, 15)
+    graphics.beginFill(0xde3249)
+    graphics.drawRect(0, 0, 800, 30)
+    graphics.endFill()
+    engine.world.addComponent(
+      entity,
+      new hadys.plugins.render.components.DisplayObject(graphics),
     )
     engine.world.update()
     return entity

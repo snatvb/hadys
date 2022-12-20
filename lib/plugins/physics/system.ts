@@ -51,7 +51,6 @@ export class PhysicsSystem extends ECS.System('Hadys::PhysicsSystem') {
     for (const filter of this._filters.bodies) {
       const body = filter.components.get(components.Body)!.value
       const position = filter.components.get(core.components.Position)!
-      console.log('body.position.y', body.position.y)
       position.set(body.position.x, body.position.y)
     }
   }
