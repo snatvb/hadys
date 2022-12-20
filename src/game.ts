@@ -18,6 +18,43 @@ class SimpleMoveSystem extends hadys.ECS.System(Symbol('SimpleMoveSystem')) {
   }
 }
 
+class FPSTag extends hadys.ECS.Component {}
+
+class FPSDisplaySystem extends hadys.ECS.System('FPSDisplaySystem') {
+  _filters = {
+    time: new hadys.ECS.Filter([
+      new hadys.ECS.Includes([
+        hadys.core.components.WorldTimeTag,
+        hadys.core.components.Time,
+      ]),
+    ]),
+    views: new hadys.ECS.Filter([
+      new hadys.ECS.Includes([
+        hadys.plugins.render.components.DisplayObject,
+        FPSTag,
+      ]),
+    ]),
+  }
+
+  update() {
+    const time = this._filters.time.first()
+    if (!time) {
+      return
+    }
+
+    const delta = time.components.get(hadys.core.components.Time)!.delta
+
+    for (const filter of this._filters.views) {
+      const displayObject = filter.components.get(
+        hadys.plugins.render.components
+          .DisplayObject<hadys.plugins.render.Text>,
+      )!
+      const text = displayObject.object
+      text.text = `${Math.round(1000 / delta)} FPS`
+    }
+  }
+}
+
 export function startGame(view: HTMLCanvasElement) {
   let intervalId: number = 0
   ;(async () => {
@@ -34,9 +71,11 @@ export function startGame(view: HTMLCanvasElement) {
     engine.world.setExtensions([...corePlugin.extensions])
     engine.world.setSystems([
       new SimpleMoveSystem(),
+      new FPSDisplaySystem(),
       ...renderPlugin.systems,
       ...corePlugin.systems,
     ])
+    hadys.core.entities.time(engine.world)
 
     await engine.assets.loadResources({
       sprites: {
@@ -48,27 +87,60 @@ export function startGame(view: HTMLCanvasElement) {
     })
 
     const rootEntity = engine.world.addEntity()
+    addMainSprite(engine, rootEntity)
 
-    const entity = createContainer(engine, { x: 10, y: 10 })
-
+    const entity = engine.world.addEntity()
     engine.world.addComponent(
       entity,
       new hadys.core.components.Hierarchy(rootEntity),
     )
 
+    intervalId = window.setInterval(() => {
+      engine.world.update()
+    }, 16)
+  })()
+
+  return () => {
+    clearInterval(intervalId)
+  }
+
+  function addMainSprite(
+    engine: {
+      world: hadys.ECS.World
+      assets: import('d:/p/hadys-engine/lib/assets').Assets
+    },
+    rootEntity: number,
+  ) {
+    const entity = createContainer(engine, { x: 10, y: 10 })
+    engine.world.addComponent(
+      entity,
+      new hadys.core.components.Hierarchy(rootEntity),
+    )
+
+    addSpriteLogo(engine, entity)
+    addTitle(engine, entity)
+    addFPSText(engine, entity)
+  }
+
+  function addSpriteLogo(engine: hadys.Engine, entity: number) {
     const sprite = new hadys.plugins.render.Sprite(
       engine.assets.get('logo') as any,
     )
     const spriteEntity = engine.world.addEntity()
-    engine.world.addComponent(
-      spriteEntity,
-      new hadys.plugins.render.components.DisplayObject(sprite),
-    )
+    const display =
+      new hadys.plugins.render.components.DisplayObject<hadys.plugins.render.Sprite>(
+        sprite,
+      )
+    engine.world.addComponent(spriteEntity, display)
     engine.world.addComponent(
       spriteEntity,
       new hadys.core.components.Hierarchy(entity),
     )
 
+    return display
+  }
+
+  function addTitle(engine: hadys.Engine, entity: number) {
     const text = new hadys.plugins.render.Text('Hadys', {
       fontFamily: 'Arial',
       align: 'center',
@@ -86,18 +158,31 @@ export function startGame(view: HTMLCanvasElement) {
       textEntity,
       new hadys.core.components.Hierarchy(entity),
     )
+  }
 
-    intervalId = setInterval(() => {
-      engine.world.update()
-    }, 16)
-  })()
-
-  return () => {
-    clearInterval(intervalId)
+  function addFPSText(engine: hadys.Engine, entity: number) {
+    const fpsText = new hadys.plugins.render.Text('0 FPS', {
+      fontFamily: 'Arial',
+      align: 'center',
+      fontSize: 24,
+      fill: 0xeeeeee,
+    })
+    fpsText.anchor.set(0.5)
+    fpsText.position.set(500, 100)
+    const textFPSEntity = engine.world.addEntity()
+    engine.world.addComponent(
+      textFPSEntity,
+      new hadys.plugins.render.components.DisplayObject(fpsText),
+    )
+    engine.world.addComponent(
+      textFPSEntity,
+      new hadys.core.components.Hierarchy(entity),
+    )
+    engine.world.addComponent(textFPSEntity, new FPSTag())
   }
 
   function createContainer(
-    engine: ReturnType<typeof hadys.create>,
+    engine: hadys.Engine,
     position: { x: number; y: number },
   ) {
     const entity = engine.world.addEntity()

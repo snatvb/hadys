@@ -12,3 +12,5 @@ export const create = () => {
 
   return ctx
 }
+
+export type Engine = ReturnType<typeof create>

@@ -29,4 +29,8 @@ export class Filter implements IFilter, Iterable<FilterItem> {
   [Symbol.iterator](): Iterator<FilterItem, any, undefined> {
     return this.entities.values()
   }
+
+  first(): FilterItem | undefined {
+    return this.entities.values().next().value
+  }
 }

@@ -150,6 +150,7 @@ const benchAmount = () => {
 }
 
 const benchmark = () => {
+  ReCreateSystem.recreateCount = 0
   const engine = hadys.create()
   const corePlugin = hadys.plugins.core.create(engine.world)
   const renderPlugin = hadys.plugins.render.create(engine, {

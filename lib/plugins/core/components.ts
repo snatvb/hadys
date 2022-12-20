@@ -93,3 +93,21 @@ export class Hierarchy extends ECS.Component {
     this.children.delete(child)
   }
 }
+
+export class Time extends ECS.Component {
+  elapsed: number = 0
+  delta: number = 0
+
+  get deltaSeconds() {
+    return this.delta / 1000
+  }
+
+  constructor(
+    public started: number = performance.now(),
+    public lastUpdate = started,
+  ) {
+    super()
+  }
+}
+
+export class WorldTimeTag extends ECS.Component {}

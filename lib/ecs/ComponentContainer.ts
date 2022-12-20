@@ -1,23 +1,27 @@
 import { BaseComponentClass, Component, ComponentClass } from './component'
 
 export class ComponentContainer {
-  private map = new Map<BaseComponentClass, Component>()
+  private _map = new Map<BaseComponentClass, Component>()
+
+  public get size(): number {
+    return this._map.size
+  }
 
   public add(component: Component): void {
-    this.map.set(component.constructor as BaseComponentClass, component)
+    this._map.set(component.constructor as BaseComponentClass, component)
   }
 
   public get<T extends Component>(componentClass: ComponentClass<T>): T {
-    return this.map.get(componentClass) as T
+    return this._map.get(componentClass) as T
   }
 
   public has(componentClass: BaseComponentClass): boolean {
-    return this.map.has(componentClass)
+    return this._map.has(componentClass)
   }
 
   public hasAll(componentClasses: Iterable<BaseComponentClass>): boolean {
     for (let cls of componentClasses) {
-      if (!this.map.has(cls)) {
+      if (!this._map.has(cls)) {
         return false
       }
     }
@@ -25,10 +29,10 @@ export class ComponentContainer {
   }
 
   public delete(componentClass: BaseComponentClass): void {
-    this.map.delete(componentClass)
+    this._map.delete(componentClass)
   }
 
   public values(): IterableIterator<Component> {
-    return this.map.values()
+    return this._map.values()
   }
 }

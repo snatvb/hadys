@@ -23,8 +23,6 @@ export class DirtiesExtension implements ECS.IExtension {
 
   constructor(private _world: ECS.IWorld) {}
 
-  addEntity(entity: ECS.Entity): void {}
-
   removeEntity(entity: ECS.Entity): void {
     const components = this._world.getComponents(entity)
     if (components) {
@@ -35,8 +33,6 @@ export class DirtiesExtension implements ECS.IExtension {
       }
     }
   }
-
-  addComponent(entity: ECS.Entity, component: ECS.Component): void {}
 
   removeComponent(
     entity: ECS.Entity,
