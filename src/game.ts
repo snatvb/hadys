@@ -196,6 +196,10 @@ export function startGame(viewContainer: HTMLDivElement) {
     addDangerCircle(engine, { x: 300, y: 200 })
     addDangerCircle(engine, { x: 500, y: 200 })
     addDangerCircle(engine, { x: 300, y: 100 })
+
+    for (let i = 0; i < 10; i++) {
+      addDangerCircle(engine, { x: i * 60 + 100, y: 0 })
+    }
     createFloor(engine)
 
     const intervalId = window.setInterval(() => {
