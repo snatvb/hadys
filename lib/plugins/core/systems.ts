@@ -13,6 +13,7 @@ export class TimeSystem extends ECS.System('Hadys::TimeSystem') {
       time.delta = now - time.lastUpdate
       time.elapsed += time.delta
       time.lastUpdate = now
+      time.ticks += 1
     }
   }
 }

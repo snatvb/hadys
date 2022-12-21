@@ -75,6 +75,7 @@ export class Hierarchy extends ECS.Component {
 export class Time extends ECS.Component {
   elapsed: number = 0
   delta: number = 0
+  ticks: number = 0
 
   get deltaSeconds() {
     return this.delta / 1000

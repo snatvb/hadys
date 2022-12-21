@@ -45,7 +45,7 @@ export class PhysicsSystem extends ECS.System('Hadys::PhysicsSystem') {
 
     for (const filter of this._filters.time) {
       const time = filter.components.get(core.components.Time)!
-      Matter.Engine.update(this._engine, time.delta)
+      Matter.Engine.update(this._engine, Math.min(time.delta, 66))
     }
 
     for (const filter of this._filters.bodies) {
