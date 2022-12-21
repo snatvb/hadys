@@ -1,7 +1,7 @@
-import { ISystem } from './ISystem'
+import { IBaseSystem } from './ISystem'
 
-export const sortSystems = (systems: ISystem[]) => {
-  const result: ISystem[] = [...systems]
+export const sortSystems = (systems: IBaseSystem[]) => {
+  const result: IBaseSystem[] = [...systems]
 
   for (let index = 0; index < systems.length; index++) {
     const system = systems[index]

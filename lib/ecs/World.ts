@@ -18,8 +18,9 @@ import {
 } from './extensions'
 import { Entity, START_ENTITY_ID } from './entity'
 import { sortSystems } from './helpers'
-import { ISystem } from './ISystem'
+import { IBaseSystem, ISystem } from './ISystem'
 import { IWorld } from './IWorld'
+import { isUpdatableSystem } from './System'
 
 const initExtensions = () => ({
   afterUpdatable: new Set<IAfterUpdatable>(),
@@ -33,7 +34,10 @@ const initExtensions = () => ({
 
 export class World implements IWorld {
   private _entities = new Map<Entity, ComponentContainer>()
-  private _systems = new Set<ISystem>()
+  private _systems = {
+    all: new Set<IBaseSystem>(),
+    updatable: new Set<ISystem>(),
+  }
   private _extensions = initExtensions()
 
   private _nextEntityID = START_ENTITY_ID
@@ -79,8 +83,9 @@ export class World implements IWorld {
     this._updateEntity(entity)
   }
 
-  setSystems(systems: ISystem[]): void {
-    this._systems.clear()
+  setSystems(systems: IBaseSystem[]): void {
+    this._systems.all.clear()
+    this._systems.updatable.clear()
 
     const sorted = sortSystems(systems)
     for (let system of sorted) {
@@ -126,7 +131,7 @@ export class World implements IWorld {
     this._extensions.beforeUpdatable.forEach((extension) =>
       extension.beforeUpdate(),
     )
-    for (let system of this._systems) {
+    for (let system of this._systems.updatable) {
       system.update()
     }
     this._extensions.afterUpdatable.forEach((extension) =>
@@ -139,7 +144,7 @@ export class World implements IWorld {
   }
 
   destroy(): void {
-    for (let system of this._systems) {
+    for (let system of this._systems.all) {
       system.destroy()
     }
 
@@ -148,14 +153,17 @@ export class World implements IWorld {
     }
   }
 
-  private _addSystem(system: ISystem): void {
+  private _addSystem(system: IBaseSystem): void {
     system.world = this
     system.init()
 
     if (system.validate() == false) {
       return
     }
-    this._systems.add(system)
+    this._systems.all.add(system)
+    if (isUpdatableSystem(system)) {
+      this._systems.updatable.add(system)
+    }
 
     for (let entity of this._entities.keys()) {
       this._updateSystems(entity, system)
@@ -164,19 +172,19 @@ export class World implements IWorld {
 
   private _destroyEntity(entity: Entity): void {
     this._entities.delete(entity)
-    for (let system of this._systems) {
+    for (let system of this._systems.all) {
       system.deleteEntity(entity)
     }
   }
 
   private _updateEntity(entity: Entity): void {
-    for (let system of this._systems.keys()) {
+    for (let system of this._systems.all.values()) {
       this._updateSystems(entity, system)
     }
   }
 
-  private _updateSystems(entity: Entity, system: ISystem): void {
-    let have = this._entities.get(entity)!
+  private _updateSystems(entity: Entity, system: IBaseSystem): void {
+    const have = this._entities.get(entity)!
     system.updateEntity(entity, have)
   }
 }
