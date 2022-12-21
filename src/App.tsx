@@ -1,24 +1,38 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { startGame } from './game'
 import { run } from './benchmark'
 
+function useForceRerender() {
+  const [_, set] = useState(false)
+  return useCallback(() => set((v) => !v), [])
+}
+
 function App() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const forceRerender = useForceRerender()
 
   // useEffect(() => {
   //   return run()
   // }, [])
 
   useEffect(() => {
-    return startGame(canvasRef.current!)
-  }, [])
+    const api = startGame(containerRef.current!)
+    return () => {
+      api.clear()
+    }
+  })
 
   return (
     <div className="App">
-      <canvas
-        ref={canvasRef}
-        id="game"
+      <button
+        onClick={forceRerender}
+        style={{ position: 'absolute', top: 10, left: 10 }}
+      >
+        Rerun
+      </button>
+      <div
+        ref={containerRef}
         style={{
           width: '800px',
           height: '600px',

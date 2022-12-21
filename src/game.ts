@@ -133,8 +133,8 @@ class FPSDisplaySystem extends hadys.ECS.System('FPSDisplaySystem') {
   }
 }
 
-export function startGame(view: HTMLCanvasElement) {
-  let intervalId: number = 0
+export function startGame(viewContainer: HTMLDivElement) {
+  const api = { clear: () => {} }
   ;(async () => {
     const engine = hadys.create()
     const corePlugin = hadys.plugins.core.create()
@@ -145,8 +145,13 @@ export function startGame(view: HTMLCanvasElement) {
         height: 600,
       },
       resolution: 2,
-      view,
     })
+
+    const view = renderPlugin.app.view as HTMLCanvasElement
+    view.style.background = 'transparent'
+    view.style.width = '100%'
+    view.style.height = '100%'
+    viewContainer.appendChild(renderPlugin.app.view as HTMLCanvasElement)
     const debugPlugin = hadys.plugins.debug.create(
       physicsPlugin.engine,
       renderPlugin.app,
@@ -155,6 +160,7 @@ export function startGame(view: HTMLCanvasElement) {
     engine.world.setExtensions([
       ...corePlugin.extensions,
       ...physicsPlugin.extensions,
+      ...renderPlugin.extensions,
     ])
     engine.world.setSystems([
       ...physicsPlugin.systems,
@@ -185,21 +191,30 @@ export function startGame(view: HTMLCanvasElement) {
     engine.world.addComponent(rootEntity, new hadys.core.components.Hierarchy())
     addMainSprite(engine, rootEntity)
 
-    addDangerCircle(engine)
+    addDangerCircle(engine, { x: 100, y: 100 })
+    addDangerCircle(engine, { x: 70, y: 200 })
+    addDangerCircle(engine, { x: 300, y: 200 })
+    addDangerCircle(engine, { x: 500, y: 200 })
+    addDangerCircle(engine, { x: 300, y: 100 })
     createFloor(engine)
 
-    intervalId = window.setInterval(() => {
+    const intervalId = window.setInterval(() => {
       engine.world.update()
     }, 16)
+    api.clear = () => {
+      clearInterval(intervalId)
+      engine.world.destroy()
+    }
   })()
 
-  return () => {
-    clearInterval(intervalId)
-  }
+  return api
 }
 
-function addDangerCircle(engine: hadys.Engine) {
-  const entityContainer = createContainer(engine.world, { x: 400, y: 200 })
+function addDangerCircle(
+  engine: hadys.Engine,
+  position: { x: number; y: number },
+) {
+  const entityContainer = createContainer(engine.world, position)
 
   const entity = engine.world.addEntity()
   engine.world.addComponent(

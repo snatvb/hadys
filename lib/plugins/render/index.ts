@@ -1,4 +1,5 @@
 import { PIXI } from './dependencies'
+import { RenderExtension } from './extension'
 import { Config, Dependencies, RenderApp } from './interfaces'
 import { SyncContainerSystem } from './systems'
 
@@ -14,5 +15,6 @@ export function create(dependencies: Dependencies, config: Config) {
   return {
     app,
     systems: [new SyncContainerSystem(renderApp)],
+    extensions: [new RenderExtension(app)],
   }
 }
