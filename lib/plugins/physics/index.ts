@@ -1,8 +1,11 @@
 import Matter from 'matter-js'
+import { CollisionDetector } from './extensions/collision-detector'
 import { Config } from './interfaces'
 import { PhysicsSystem } from './system'
 
 export * as components from './components'
+
+export * as extensions from './extensions'
 
 export const Body = Matter.Body
 export const Bodies = Matter.Bodies
@@ -21,6 +24,7 @@ export const create = (config: Config = {}) => {
   //   Matter.Render.run(render)
   return {
     engine,
+    extensions: [new CollisionDetector(engine)],
     systems: [new PhysicsSystem(engine)],
   }
 }

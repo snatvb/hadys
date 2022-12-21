@@ -46,5 +46,7 @@ export function System(type: Symbol | string) {
         filter.deleteEntity(entity)
       }
     }
+
+    public destroy(): void {}
   }
 }

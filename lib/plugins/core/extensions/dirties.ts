@@ -18,13 +18,11 @@ export class DirtyComponent {
   }
 }
 
-export class DirtiesExtension implements ECS.IExtension {
+export class DirtiesExtension extends ECS.Extension {
   public static $$dirties: Set<DirtyComponent> = new Set()
 
-  constructor(private _world: ECS.IWorld) {}
-
   removeEntity(entity: ECS.Entity): void {
-    const components = this._world.getComponents(entity)
+    const components = this.world.getComponents(entity)
     if (components) {
       for (let component of components.values()) {
         if (component instanceof DirtyComponent) {
@@ -44,7 +42,7 @@ export class DirtiesExtension implements ECS.IExtension {
     entity: ECS.Entity,
     componentClass: ECS.BaseComponentClass,
   ): void {
-    const component = this._world.getComponents(entity)!.get(componentClass)!
+    const component = this.world.getComponents(entity)!.get(componentClass)!
     if (component instanceof DirtyComponent) {
       DirtiesExtension.$$dirties.delete(component)
     }

@@ -8,10 +8,10 @@ import * as geometry from './geometry'
 
 export { components, geometry }
 
-export const create = (world: IWorld) => {
+export const create = () => {
   return {
     systems: [new TimeSystem()],
-    extensions: [new DirtiesExtension(world), new OneFramesExtension(world)],
+    extensions: [new DirtiesExtension(), new OneFramesExtension()],
   }
 }
 

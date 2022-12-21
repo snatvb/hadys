@@ -18,6 +18,7 @@ export interface IBaseSystem {
   validate(): boolean
   updateEntity(entity: Entity, components: ComponentContainer): void
   deleteEntity(entity: Entity): void
+  destroy(): void
 }
 
 export interface ISystem extends IBaseSystem {

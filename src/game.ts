@@ -2,8 +2,9 @@ import { hadys } from '../lib/main'
 
 class FPSTag extends hadys.ECS.Component {}
 class MovableTag extends hadys.ECS.Component {}
+class CollisionTag extends hadys.ECS.Component {}
 
-class SimpleMoveSystem extends hadys.ECS.System(Symbol('SimpleMoveSystem')) {
+class SimpleMoveSystem extends hadys.ECS.System('SimpleMoveSystem') {
   _filters = {
     transforms: new hadys.ECS.Filter([
       new hadys.ECS.Includes([hadys.core.components.Transform, MovableTag]),
@@ -20,6 +21,51 @@ class SimpleMoveSystem extends hadys.ECS.System(Symbol('SimpleMoveSystem')) {
       }
       position.set((position.x + 2) % 100, (position.y + 2) % 100)
     }
+  }
+}
+
+class CollisionSystem extends hadys.ECS.System('CollisionSystem') {
+  _filters = {
+    bodies: new hadys.ECS.Filter([
+      new hadys.ECS.Includes([hadys.plugins.physics.components.Body]),
+    ]),
+  }
+
+  private _collisions!: hadys.plugins.physics.extensions.CollisionDetector
+
+  init() {
+    super.init()
+    this._collisions = this.world.getExtension(
+      hadys.plugins.physics.extensions.CollisionDetector,
+    )
+  }
+
+  update() {
+    for (const event of this._collisions.collisions.start) {
+      const [a] = event.pairs
+      const { vertex } = a.contacts[a.contacts.length - 1]
+      this._createHit(vertex)
+    }
+  }
+
+  private _createHit(position: { x: number; y: number }) {
+    const entityContainer = createContainer(this.world, position)
+    this.world.addComponent(entityContainer, new CollisionTag())
+
+    const graphicEntity = this.world.addEntity()
+    const graphics = new hadys.plugins.render.Graphics()
+    graphics.beginFill(0xff0000)
+    graphics.drawCircle(0, 0, 10)
+    graphics.endFill()
+    graphics.pivot.set(5, 5)
+    this.world.addComponent(
+      graphicEntity,
+      new hadys.plugins.render.components.DisplayObject(graphics),
+    )
+    this.world.addComponent(
+      graphicEntity,
+      new hadys.core.components.Hierarchy(entityContainer),
+    )
   }
 }
 
@@ -62,7 +108,7 @@ export function startGame(view: HTMLCanvasElement) {
   let intervalId: number = 0
   ;(async () => {
     const engine = hadys.create()
-    const corePlugin = hadys.plugins.core.create(engine.world)
+    const corePlugin = hadys.plugins.core.create()
     const physicsPlugin = hadys.plugins.physics.create({ engine: {} })
     const renderPlugin = hadys.plugins.render.create(engine, {
       size: {
@@ -77,9 +123,13 @@ export function startGame(view: HTMLCanvasElement) {
       renderPlugin.app,
     )
 
-    engine.world.setExtensions([...corePlugin.extensions])
+    engine.world.setExtensions([
+      ...corePlugin.extensions,
+      ...physicsPlugin.extensions,
+    ])
     engine.world.setSystems([
       ...physicsPlugin.systems,
+      new CollisionSystem(),
       new SimpleMoveSystem(),
       new FPSDisplaySystem(),
       ...corePlugin.systems,
@@ -115,159 +165,154 @@ export function startGame(view: HTMLCanvasElement) {
   return () => {
     clearInterval(intervalId)
   }
+}
 
-  function addDangerCircle(engine: hadys.Engine) {
-    const entityContainer = createContainer(engine, { x: 400, y: 200 })
+function addDangerCircle(engine: hadys.Engine) {
+  const entityContainer = createContainer(engine.world, { x: 400, y: 200 })
 
-    const entity = engine.world.addEntity()
-    engine.world.addComponent(
-      entity,
-      new hadys.core.components.Hierarchy(entityContainer),
-    )
-    const sprite = addSprite(engine, entityContainer, 'danger')
-    sprite.object.anchor.set(0.5)
-    sprite.object.scale.set(0.5)
-    engine.world.addComponent(
-      entityContainer,
-      new hadys.plugins.physics.components.Body(
-        hadys.plugins.physics.Bodies.circle(50, 50, sprite.object.width / 2, {
-          friction: 2,
-          restitution: 0,
-        }),
-      ),
-    )
-    addFPSText(engine, entityContainer, [0, -sprite.object.width / 2 - 10])
-  }
+  const entity = engine.world.addEntity()
+  engine.world.addComponent(
+    entity,
+    new hadys.core.components.Hierarchy(entityContainer),
+  )
+  const sprite = addSprite(engine, entityContainer, 'danger')
+  sprite.object.anchor.set(0.5)
+  sprite.object.scale.set(0.5)
+  engine.world.addComponent(
+    entityContainer,
+    new hadys.plugins.physics.components.Body(
+      hadys.plugins.physics.Bodies.circle(50, 50, sprite.object.width / 2, {
+        friction: 2,
+        restitution: 0.5,
+      }),
+    ),
+  )
+  addFPSText(engine, entityContainer, [0, -sprite.object.width / 2 - 10])
+}
 
-  function addMainSprite(engine: hadys.Engine, rootEntity: number) {
-    const entity = createContainer(engine, { x: 10, y: 10 })
-    engine.world.addComponent(
-      entity,
-      new hadys.core.components.Hierarchy(rootEntity),
-    )
-    engine.world.addComponent(entity, new MovableTag())
+function addMainSprite(engine: hadys.Engine, rootEntity: number) {
+  const entity = createContainer(engine.world, { x: 10, y: 10 })
+  engine.world.addComponent(
+    entity,
+    new hadys.core.components.Hierarchy(rootEntity),
+  )
+  engine.world.addComponent(entity, new MovableTag())
 
-    addSprite(engine, entity)
-    addTitle(engine, entity)
-    addFPSText(engine, entity)
-  }
+  addSprite(engine, entity)
+  addTitle(engine, entity)
+  addFPSText(engine, entity)
+}
 
-  function addSprite(
-    engine: hadys.Engine,
-    entity: number,
-    name: string = 'logo',
-  ) {
-    const sprite = new hadys.plugins.render.Sprite(
-      engine.assets.get(name) as any,
+function addSprite(
+  engine: hadys.Engine,
+  entity: number,
+  name: string = 'logo',
+) {
+  const sprite = new hadys.plugins.render.Sprite(engine.assets.get(name) as any)
+  const spriteEntity = engine.world.addEntity()
+  const display =
+    new hadys.plugins.render.components.DisplayObject<hadys.plugins.render.Sprite>(
+      sprite,
     )
-    const spriteEntity = engine.world.addEntity()
-    const display =
-      new hadys.plugins.render.components.DisplayObject<hadys.plugins.render.Sprite>(
-        sprite,
-      )
-    engine.world.addComponent(spriteEntity, display)
-    engine.world.addComponent(
-      spriteEntity,
-      new hadys.core.components.Hierarchy(entity),
-    )
+  engine.world.addComponent(spriteEntity, display)
+  engine.world.addComponent(
+    spriteEntity,
+    new hadys.core.components.Hierarchy(entity),
+  )
 
-    return display
-  }
+  return display
+}
 
-  function addTitle(engine: hadys.Engine, entity: number) {
-    const text = new hadys.plugins.render.Text('Hadys', {
-      fontFamily: 'Arial',
-      align: 'center',
-      fontSize: 24,
-      fill: 0xeeeeee,
-    })
-    text.anchor.set(0.5)
-    text.position.set(100, 100)
-    const textEntity = engine.world.addEntity()
-    engine.world.addComponent(
-      textEntity,
-      new hadys.plugins.render.components.DisplayObject(text),
-    )
-    engine.world.addComponent(
-      textEntity,
-      new hadys.core.components.Hierarchy(entity),
-    )
-  }
+function addTitle(engine: hadys.Engine, entity: number) {
+  const text = new hadys.plugins.render.Text('Hadys', {
+    fontFamily: 'Arial',
+    align: 'center',
+    fontSize: 24,
+    fill: 0xeeeeee,
+  })
+  text.anchor.set(0.5)
+  text.position.set(100, 100)
+  const textEntity = engine.world.addEntity()
+  engine.world.addComponent(
+    textEntity,
+    new hadys.plugins.render.components.DisplayObject(text),
+  )
+  engine.world.addComponent(
+    textEntity,
+    new hadys.core.components.Hierarchy(entity),
+  )
+}
 
-  function addFPSText(
-    engine: hadys.Engine,
-    entity: number,
-    [x, y]: number[] = [500, 100],
-  ) {
-    const fpsText = new hadys.plugins.render.Text('0 FPS', {
-      fontFamily: 'Arial',
-      align: 'center',
-      fontSize: 24,
-      fill: 0xeeeeee,
-    })
-    fpsText.anchor.set(0.5)
-    fpsText.position.set(x, y)
-    const textFPSEntity = engine.world.addEntity()
-    engine.world.addComponent(
-      textFPSEntity,
-      new hadys.plugins.render.components.DisplayObject(fpsText),
-    )
-    engine.world.addComponent(
-      textFPSEntity,
-      new hadys.core.components.Hierarchy(entity),
-    )
-    engine.world.addComponent(textFPSEntity, new FPSTag())
-  }
+function addFPSText(
+  engine: hadys.Engine,
+  entity: number,
+  [x, y]: number[] = [500, 100],
+) {
+  const fpsText = new hadys.plugins.render.Text('0 FPS', {
+    fontFamily: 'Arial',
+    align: 'center',
+    fontSize: 24,
+    fill: 0xeeeeee,
+  })
+  fpsText.anchor.set(0.5)
+  fpsText.position.set(x, y)
+  const textFPSEntity = engine.world.addEntity()
+  engine.world.addComponent(
+    textFPSEntity,
+    new hadys.plugins.render.components.DisplayObject(fpsText),
+  )
+  engine.world.addComponent(
+    textFPSEntity,
+    new hadys.core.components.Hierarchy(entity),
+  )
+  engine.world.addComponent(textFPSEntity, new FPSTag())
+}
 
-  function createContainer(
-    engine: hadys.Engine,
-    position: { x: number; y: number },
-  ) {
-    const entity = engine.world.addEntity()
-    engine.world.addComponent(entity, new hadys.core.components.Hierarchy())
-    engine.world.addComponent(
-      entity,
-      new hadys.plugins.render.components.Container(),
-    )
-    const transformPosition = hadys.core.geometry.Vec2.from(position)
-    engine.world.addComponent(
-      entity,
-      new hadys.core.components.Transform(transformPosition),
-    )
+function createContainer(
+  world: hadys.ECS.IWorld,
+  position: { x: number; y: number },
+) {
+  const entity = world.addEntity()
+  world.addComponent(entity, new hadys.core.components.Hierarchy())
+  world.addComponent(entity, new hadys.plugins.render.components.Container())
+  const transformPosition = hadys.core.geometry.Vec2.from(position)
+  world.addComponent(
+    entity,
+    new hadys.core.components.Transform(transformPosition),
+  )
 
-    return entity
-  }
+  return entity
+}
 
-  function createFloor(engine: hadys.Engine) {
-    const entityContainer = createContainer(engine, { x: 400, y: 585 })
-    engine.world
-      .getComponents(entityContainer)!
-      .get(hadys.core.components.Transform)!
+function createFloor(engine: hadys.Engine) {
+  const entityContainer = createContainer(engine.world, { x: 400, y: 585 })
+  engine.world
+    .getComponents(entityContainer)!
+    .get(hadys.core.components.Transform)!
 
-    const body = hadys.plugins.physics.Bodies.rectangle(0, 0, 800, 30, {
-      isStatic: true,
-    })
+  const body = hadys.plugins.physics.Bodies.rectangle(0, 0, 800, 30, {
+    isStatic: true,
+  })
 
-    engine.world.addComponent(
-      entityContainer,
-      new hadys.plugins.physics.components.Body(body),
-    )
+  engine.world.addComponent(
+    entityContainer,
+    new hadys.plugins.physics.components.Body(body),
+  )
 
-    const entity = engine.world.addEntity()
-    engine.world.addComponent(
-      entity,
-      new hadys.core.components.Hierarchy(entityContainer),
-    )
-    const graphics = new hadys.plugins.render.Graphics()
-    graphics.pivot.set(400, 15)
-    graphics.beginFill(0xde3249)
-    graphics.drawRect(0, 0, 800, 30)
-    graphics.endFill()
-    engine.world.addComponent(
-      entity,
-      new hadys.plugins.render.components.DisplayObject(graphics),
-    )
-    engine.world.update()
-    return entity
-  }
+  const entity = engine.world.addEntity()
+  engine.world.addComponent(
+    entity,
+    new hadys.core.components.Hierarchy(entityContainer),
+  )
+  const graphics = new hadys.plugins.render.Graphics()
+  graphics.pivot.set(400, 15)
+  graphics.beginFill(0xde3249)
+  graphics.drawRect(0, 0, 800, 30)
+  graphics.endFill()
+  engine.world.addComponent(
+    entity,
+    new hadys.plugins.render.components.DisplayObject(graphics),
+  )
+  engine.world.update()
+  return entity
 }

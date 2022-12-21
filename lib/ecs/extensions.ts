@@ -1,5 +1,6 @@
 import { BaseComponentClass, Component } from './component'
 import { Entity } from './entity'
+import { IWorld } from './IWorld'
 
 export interface IAddable {
   addEntity(entity: Entity): void
@@ -25,7 +26,7 @@ export interface IAfterUpdatable {
   afterUpdate(): void
 }
 
-export type IExtension = Partial<
+type PartialSigns = Partial<
   IAddable &
     IRemovable &
     IComponentAddable &
@@ -34,34 +35,52 @@ export type IExtension = Partial<
     IBeforeUpdatable
 >
 
+export interface IExtension extends PartialSigns {
+  world: IWorld
+  destroy(): void
+}
+
+export type ExtensionClass<T extends IExtension = IExtension> = new (
+  ...args: any[]
+) => T
+
 export const isAfterUpdatable = (
-  extension: IExtension,
+  extension: IExtension | IAfterUpdatable,
 ): extension is IAfterUpdatable => {
   return 'afterUpdate' in extension
 }
 
 export const isBeforeUpdatable = (
-  extension: IExtension,
+  extension: IExtension | IBeforeUpdatable,
 ): extension is IBeforeUpdatable => {
   return 'beforeUpdate' in extension
 }
 
-export const isAddable = (extension: IExtension): extension is IAddable => {
+export const isAddable = (
+  extension: IExtension | IAddable,
+): extension is IAddable => {
   return 'addEntity' in extension
 }
 
-export const isRemovable = (extension: IExtension): extension is IRemovable => {
+export const isRemovable = (
+  extension: IExtension | IRemovable,
+): extension is IRemovable => {
   return 'removeEntity' in extension
 }
 
 export const isComponentAddable = (
-  extension: IExtension,
+  extension: IExtension | IComponentAddable,
 ): extension is IComponentAddable => {
   return 'addComponent' in extension
 }
 
 export const isComponentRemovable = (
-  extension: IExtension,
+  extension: IExtension | IComponentRemovable,
 ): extension is IComponentRemovable => {
   return 'removeComponent' in extension
+}
+
+export abstract class Extension implements IExtension {
+  public world!: IWorld
+  public destroy(): void {}
 }

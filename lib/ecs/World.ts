@@ -1,6 +1,7 @@
 import { BaseComponentClass, Component } from './component'
 import { ComponentContainer } from './ComponentContainer'
 import {
+  ExtensionClass,
   IAddable,
   IAfterUpdatable,
   IBeforeUpdatable,
@@ -14,7 +15,7 @@ import {
   isComponentAddable,
   isComponentRemovable,
   isRemovable,
-} from './IExtension'
+} from './extensions'
 import { Entity, START_ENTITY_ID } from './entity'
 import { sortSystems } from './helpers'
 import { ISystem } from './ISystem'
@@ -27,6 +28,7 @@ const initExtensions = () => ({
   removable: new Set<IRemovable>(),
   componentAddable: new Set<IComponentAddable>(),
   componentRemovable: new Set<IComponentRemovable>(),
+  all: new Map<ExtensionClass, IExtension>(),
 })
 
 export class World implements IWorld {
@@ -94,6 +96,7 @@ export class World implements IWorld {
   }
 
   addExtension(extension: IExtension): void {
+    extension.world = this
     if (isBeforeUpdatable(extension)) {
       this._extensions.beforeUpdatable.add(extension)
     }
@@ -112,6 +115,11 @@ export class World implements IWorld {
     if (isComponentRemovable(extension)) {
       this._extensions.componentRemovable.add(extension)
     }
+    this._extensions.all.set(extension.constructor as ExtensionClass, extension)
+  }
+
+  getExtension<T extends IExtension>(extensionClass: ExtensionClass<T>): T {
+    return this._extensions.all.get(extensionClass) as T
   }
 
   update(): void {
@@ -130,14 +138,23 @@ export class World implements IWorld {
     }
   }
 
+  destroy(): void {
+    for (let system of this._systems) {
+      system.destroy()
+    }
+
+    for (let extension of this._extensions.all.values()) {
+      extension.destroy()
+    }
+  }
+
   private _addSystem(system: ISystem): void {
+    system.world = this
     system.init()
 
     if (system.validate() == false) {
       return
     }
-
-    system.world = this
     this._systems.add(system)
 
     for (let entity of this._entities.keys()) {
