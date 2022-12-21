@@ -39,26 +39,36 @@ export class TimeSystem extends ECS.System('Hadys::Core::TimeSystem') {
   }
 }
 
-export class HierarchyRemoveSystem extends ECS.System(
-  'Hadys::Core::HierarchyRemoveSystem',
+export class HierarchySystem extends ECS.System(
+  'Hadys::Core::HierarchySystem',
 ) {
   _filters = {
-    hierarchy: new ECS.FilterWithLifecycle([
-      new ECS.Includes([Hierarchy]),
-      new ECS.Has(Hierarchy),
-    ]),
+    hierarchy: new ECS.FilterWithLifecycle([new ECS.Has(Hierarchy)]),
   }
 
   constructor() {
     super()
 
-    this._filters.hierarchy.onDisappeared = (entity, cc) => {
+    this._filters.hierarchy.onAppeared = (entity, cc) => {
       const hierarchy = cc.get(Hierarchy)!
       if (hierarchy.parent) {
         this.world
           .getComponents(hierarchy.parent)!
           .get(Hierarchy)!
+          .addChild(entity)
+      }
+    }
+
+    this._filters.hierarchy.onDisappeared = (entity, cc) => {
+      const hierarchy = cc.get(Hierarchy)!
+      if (hierarchy.parent) {
+        this.world
+          .getComponents(hierarchy.parent)
+          ?.get(Hierarchy)!
           .removeChild(entity)
+      }
+      for (const child of hierarchy.children) {
+        this.world.removeEntity(child)
       }
     }
   }

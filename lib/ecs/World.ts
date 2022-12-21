@@ -76,10 +76,10 @@ export class World implements IWorld {
   }
 
   removeComponent(entity: Entity, componentClass: BaseComponentClass): void {
-    this._entities.get(entity)!.delete(componentClass)
     this._extensions.componentRemovable.forEach((extension) =>
       extension.removeComponent(entity, componentClass),
     )
+    this._entities.get(entity)!.delete(componentClass)
     this._updateEntity(entity)
   }
 

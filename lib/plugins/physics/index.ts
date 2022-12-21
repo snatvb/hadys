@@ -1,4 +1,4 @@
-import Matter from 'matter-js'
+import { Matter } from './dependencies'
 import { CollisionDetector } from './extensions/collision-detector'
 import { Config } from './interfaces'
 import { PhysicsSystem } from './system'

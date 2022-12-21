@@ -182,6 +182,7 @@ export function startGame(view: HTMLCanvasElement) {
     })
 
     const rootEntity = engine.world.addEntity()
+    engine.world.addComponent(rootEntity, new hadys.core.components.Hierarchy())
     addMainSprite(engine, rootEntity)
 
     addDangerCircle(engine)

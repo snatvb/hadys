@@ -52,14 +52,12 @@ export class SyncContainerSystem extends ECS.System(
         const parent = this._getParentWithContainer(hierarchy)
         if (kind === 'onAppeared') {
           if (parent) {
-            parent.hierarchy.addChild(entity)
             parent.container.addChild(container)
           } else {
             this._app.pixi.stage.addChild(container)
           }
         } else {
           if (parent) {
-            parent.hierarchy.removeChild(entity)
             parent.container.removeChild(container)
           } else {
             this._app.pixi.stage.removeChild(container)
@@ -85,13 +83,10 @@ export class SyncContainerSystem extends ECS.System(
 
         const ccParent = this.world.getComponents(hierarchy.parent)!
         const { container } = ccParent.get(components.Container)!
-        const hierarchyParent = ccParent.get(core.components.Hierarchy)!
         if (kind === 'onAppeared') {
           container.addChild(object)
-          hierarchyParent.children.add(entity)
         } else {
           container.removeChild(object)
-          hierarchyParent.children.delete(entity)
         }
       }
 
