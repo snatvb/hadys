@@ -1,12 +1,30 @@
 import { IWorld } from '../../ecs/IWorld'
 import { DirtiesExtension } from './extensions/dirties'
-import { System } from './systems'
+import { OneFramesExtension } from './extensions/one-frames'
+import { HierarchySystem, TimeSystem } from './systems'
 
-export * as components from './components'
+import * as components from './components'
+import * as geometry from './geometry'
+import { HierarchyExtension } from './extensions/hirarchy'
 
-export const create = (world: IWorld) => {
+export { components, geometry }
+
+export const create = () => {
   return {
-    systems: [],
-    extensions: [new DirtiesExtension(world)],
+    systems: [new TimeSystem()],
+    extensions: [
+      new DirtiesExtension(),
+      new OneFramesExtension(),
+      new HierarchyExtension(),
+    ],
   }
+}
+
+export const entities = {
+  time: (world: IWorld) => {
+    const time = world.addEntity()
+    world.addComponent(time, new components.Time())
+    world.addComponent(time, new components.WorldTimeTag())
+    return time
+  },
 }

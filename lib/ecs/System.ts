@@ -5,6 +5,12 @@ import { IFilter } from './IFilter'
 import { IBaseSystem, ISystem } from './ISystem'
 import { IWorld } from './IWorld'
 
+export const isUpdatableSystem = (
+  system: ISystem | IBaseSystem,
+): system is ISystem => {
+  return 'update' in system
+}
+
 export function System(type: Symbol | string) {
   return class System implements IBaseSystem {
     protected readonly _filters: Record<string, IFilter> = {}
@@ -46,5 +52,7 @@ export function System(type: Symbol | string) {
         filter.deleteEntity(entity)
       }
     }
+
+    public destroy(): void {}
   }
 }

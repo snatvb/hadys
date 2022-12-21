@@ -1,7 +1,7 @@
 import { ECS } from '../../../ecs'
 
 export class DirtyComponent {
-  protected _dirty = false
+  protected _dirty = true
 
   public get dirty(): boolean {
     return this._dirty
@@ -18,15 +18,11 @@ export class DirtyComponent {
   }
 }
 
-export class DirtiesExtension implements ECS.IExtension {
+export class DirtiesExtension extends ECS.Extension {
   public static $$dirties: Set<DirtyComponent> = new Set()
 
-  constructor(private _world: ECS.IWorld) {}
-
-  addEntity(entity: ECS.Entity): void {}
-
   removeEntity(entity: ECS.Entity): void {
-    const components = this._world.getComponents(entity)
+    const components = this.world.getComponents(entity)
     if (components) {
       for (let component of components.values()) {
         if (component instanceof DirtyComponent) {
@@ -36,19 +32,23 @@ export class DirtiesExtension implements ECS.IExtension {
     }
   }
 
-  addComponent(entity: ECS.Entity, component: ECS.Component): void {}
+  addComponent(entity: ECS.Entity, component: ECS.Component): void {
+    if (component instanceof DirtyComponent) {
+      DirtiesExtension.$$dirties.add(component)
+    }
+  }
 
   removeComponent(
     entity: ECS.Entity,
     componentClass: ECS.BaseComponentClass,
   ): void {
-    const component = this._world.getComponents(entity)!.get(componentClass)!
+    const component = this.world.getComponents(entity)!.get(componentClass)!
     if (component instanceof DirtyComponent) {
       DirtiesExtension.$$dirties.delete(component)
     }
   }
 
-  update(): void {
+  afterUpdate(): void {
     for (let dirtyComponent of DirtiesExtension.$$dirties) {
       dirtyComponent.resetDirty()
     }

@@ -150,8 +150,9 @@ const benchAmount = () => {
 }
 
 const benchmark = () => {
+  ReCreateSystem.recreateCount = 0
   const engine = hadys.create()
-  const corePlugin = hadys.plugins.core.create(engine.world)
+  const corePlugin = hadys.plugins.core.create()
   const renderPlugin = hadys.plugins.render.create(engine, {
     size: {
       width: 800,
@@ -159,6 +160,7 @@ const benchmark = () => {
     },
     view: document.createElement('canvas'),
   })
+  const physicsPlugin = hadys.plugins.physics.create()
   engine.world.setExtensions([...corePlugin.extensions])
   engine.world.setSystems([
     ...corePlugin.systems,
@@ -167,6 +169,7 @@ const benchmark = () => {
     new SystemBack(),
     new ReCreateSystem(),
     ...renderPlugin.systems,
+    ...physicsPlugin.systems,
   ])
   for (let i = 0; i < 1000; i++) {
     createSomeEntity(engine.world)

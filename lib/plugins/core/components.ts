@@ -1,81 +1,59 @@
 import { ECS } from '../../ecs'
+import { Dirty } from './Dirty'
 import { DirtyComponent } from './extensions/dirties'
+import { Vec2 } from './geometry'
 
 export { DirtyComponent }
 
-export class Vec2 extends DirtyComponent {
-  private _x: number = 0
-
-  public get x(): number {
-    return this._x
-  }
-
-  private _y: number = 0
-  public get y(): number {
-    return this._y
-  }
-
-  constructor(x: number, y: number) {
-    super()
-    this._x = x
-    this._y = y
-  }
-
-  set(x: number, y: number) {
-    this._x = x
-    this._y = y
-    this._markDirty()
-  }
-
-  setShadow(x: number, y: number) {
-    this._x = x
-    this._y = y
-  }
-
-  magnitude(): number {
-    return Math.sqrt(this._x * this._x + this._y * this._y)
-  }
-
-  normalize(): Vec2 {
-    const magnitude = this.magnitude()
-    return new Vec2(this._x / magnitude, this._y / magnitude)
-  }
-
-  add(other: Vec2): Vec2 {
-    return new Vec2(this._x + other.x, this._y + other.y)
-  }
-
-  subtract(other: Vec2): Vec2 {
-    return new Vec2(this._x - other.x, this._y - other.y)
-  }
-
-  multiply(other: Vec2): Vec2 {
-    return new Vec2(this._x * other.x, this._y * other.y)
-  }
-}
-
-export class Position extends Vec2 {}
-export class Scale extends Vec2 {}
-
-export class Rotation extends DirtyComponent {
-  private _angle: number = 0
+export class Rotation {
+  private _angleRad: number = 0
 
   public get angle(): number {
-    return this._angle
+    return this._angleRad
   }
 
-  constructor(angle: number) {
-    super()
-    this._angle = angle
+  public get angleDeg(): number {
+    return (this._angleRad * 180) / Math.PI
   }
+
+  constructor(angleRad: number = 0) {
+    this._angleRad = angleRad
+  }
+
+  onChanged = () => {}
 
   set(value: number) {
-    this._angle = value
-    this._markDirty()
+    if (this._angleRad === value) {
+      return
+    }
+    this._angleRad = value
+    this.onChanged()
   }
 
   setShadow(value: number) {
-    this._angle = value
+    this._angleRad = value
+  }
+}
+
+export class Transform extends DirtyComponent {
+  position: Vec2 = new Vec2()
+  scale: Vec2 = new Vec2(1, 1)
+  rotation: Rotation = new Rotation()
+
+  constructor(
+    position: Vec2 = new Vec2(),
+    scale: Vec2 = new Vec2(1, 1),
+    rotation: Rotation = new Rotation(),
+  ) {
+    super()
+    this.position = position
+    this.scale = scale
+    this.rotation = rotation
+
+    const markDirty = this._markDirty.bind(this)
+    this.position.onChanged = markDirty
+    this.scale.onChanged = markDirty
+    this.rotation.onChanged = markDirty
   }
 }
 
@@ -93,3 +71,22 @@ export class Hierarchy extends ECS.Component {
     this.children.delete(child)
   }
 }
+
+export class Time extends ECS.Component {
+  elapsed: number = 0
+  delta: number = 0
+  ticks: number = 0
+
+  get deltaSeconds() {
+    return this.delta / 1000
+  }
+
+  constructor(
+    public started: number = performance.now(),
+    public lastUpdate = started,
+  ) {
+    super()
+  }
+}
+
+export class WorldTimeTag extends ECS.Component {}
