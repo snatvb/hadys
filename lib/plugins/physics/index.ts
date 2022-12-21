@@ -7,7 +7,7 @@ export * as components from './components'
 export const Body = Matter.Body
 export const Bodies = Matter.Bodies
 
-export const create = (config: Config) => {
+export const create = (config: Config = {}) => {
   const engine = Matter.Engine.create(config.engine)
   //   const canvas = document.querySelector('canvas')!
   //   const render = Matter.Render.create({

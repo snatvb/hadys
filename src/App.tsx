@@ -16,7 +16,14 @@ function App() {
 
   return (
     <div className="App">
-      <canvas ref={canvasRef} id="game" width="800" height="600" />
+      <canvas
+        ref={canvasRef}
+        id="game"
+        style={{
+          width: '800px',
+          height: '600px',
+        }}
+      />
     </div>
   )
 }

@@ -1,9 +1,30 @@
 import { ECS } from '../../ecs'
-import { Time } from './components'
+import { Time, WorldTimeTag } from './components'
 
 export class TimeSystem extends ECS.System('Hadys::TimeSystem') {
   _filters = {
     time: new ECS.Filter([new ECS.Has(Time)]),
+    worldTime: new ECS.FilterWithLifecycle([
+      new ECS.Includes([Time, WorldTimeTag]),
+    ]),
+  }
+
+  constructor() {
+    super()
+
+    if (process.env.NODE_ENV !== 'production') {
+      this._filters.worldTime.onAppeared = (entity, cc) => {
+        const timesCount = this._filters.worldTime.entities.size
+        if (timesCount === 0) {
+          return console.warn('No time component found')
+        }
+        if (timesCount > 1) {
+          return console.warn(
+            'More than one time component with world tag found',
+          )
+        }
+      }
+    }
   }
 
   update() {

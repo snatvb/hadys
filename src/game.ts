@@ -69,6 +69,7 @@ export function startGame(view: HTMLCanvasElement) {
         width: 800,
         height: 600,
       },
+      resolution: 2,
       view,
     })
     const debugPlugin = hadys.plugins.debug.create(
@@ -103,6 +104,19 @@ export function startGame(view: HTMLCanvasElement) {
     const rootEntity = engine.world.addEntity()
     addMainSprite(engine, rootEntity)
 
+    addDangerCircle(engine)
+    createFloor(engine)
+
+    intervalId = window.setInterval(() => {
+      engine.world.update()
+    }, 16)
+  })()
+
+  return () => {
+    clearInterval(intervalId)
+  }
+
+  function addDangerCircle(engine: hadys.Engine) {
     const entityContainer = createContainer(engine, { x: 400, y: 200 })
 
     const entity = engine.world.addEntity()
@@ -122,24 +136,10 @@ export function startGame(view: HTMLCanvasElement) {
         }),
       ),
     )
-    createFloor(engine)
-
-    intervalId = window.setInterval(() => {
-      engine.world.update()
-    }, 16)
-  })()
-
-  return () => {
-    clearInterval(intervalId)
+    addFPSText(engine, entityContainer, [0, -sprite.object.width / 2 - 10])
   }
 
-  function addMainSprite(
-    engine: {
-      world: hadys.ECS.World
-      assets: import('d:/p/hadys-engine/lib/assets').Assets
-    },
-    rootEntity: number,
-  ) {
+  function addMainSprite(engine: hadys.Engine, rootEntity: number) {
     const entity = createContainer(engine, { x: 10, y: 10 })
     engine.world.addComponent(
       entity,
@@ -194,7 +194,11 @@ export function startGame(view: HTMLCanvasElement) {
     )
   }
 
-  function addFPSText(engine: hadys.Engine, entity: number) {
+  function addFPSText(
+    engine: hadys.Engine,
+    entity: number,
+    [x, y]: number[] = [500, 100],
+  ) {
     const fpsText = new hadys.plugins.render.Text('0 FPS', {
       fontFamily: 'Arial',
       align: 'center',
@@ -202,7 +206,7 @@ export function startGame(view: HTMLCanvasElement) {
       fill: 0xeeeeee,
     })
     fpsText.anchor.set(0.5)
-    fpsText.position.set(500, 100)
+    fpsText.position.set(x, y)
     const textFPSEntity = engine.world.addEntity()
     engine.world.addComponent(
       textFPSEntity,
