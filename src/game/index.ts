@@ -1,137 +1,9 @@
-import { hadys } from '../lib/main'
-
-class FPSTag extends hadys.ECS.Component {}
-class MovableTag extends hadys.ECS.Component {}
-
-class TimeToRemove extends hadys.ECS.Component {
-  public alive = 0
-  constructor(public target: number) {
-    super()
-  }
-}
-
-const worldTimeFilter = new hadys.ECS.Filter([
-  new hadys.ECS.Includes([
-    hadys.core.components.WorldTimeTag,
-    hadys.core.components.Time,
-  ]),
-])
-
-const readWorldTime = (filter: typeof worldTimeFilter) => {
-  const worldTime = filter.first()!
-  return worldTime.components.get(hadys.core.components.Time)!
-}
-
-class RemoveByTimeSystem extends hadys.ECS.System('RemoveByTimeSystem') {
-  _filters = {
-    worldTime: worldTimeFilter,
-    timeToRemove: new hadys.ECS.Filter([
-      new hadys.ECS.Includes([TimeToRemove]),
-    ]),
-  }
-
-  update() {
-    const worldTime = readWorldTime(this._filters.worldTime)
-    for (const filter of this._filters.timeToRemove) {
-      const timeToRemove = filter.components.get(TimeToRemove)!
-      timeToRemove.alive += worldTime.delta
-      if (timeToRemove.alive > timeToRemove.target) {
-        this.world.removeEntity(filter.entity)
-      }
-    }
-  }
-}
-
-class SimpleMoveSystem extends hadys.ECS.System('SimpleMoveSystem') {
-  _filters = {
-    transforms: new hadys.ECS.Filter([
-      new hadys.ECS.Includes([hadys.core.components.Transform, MovableTag]),
-    ]),
-  }
-
-  update() {
-    for (const filter of this._filters.transforms) {
-      const { position } = filter.components.get(
-        hadys.core.components.Transform,
-      )!
-      if (position.x === 0) {
-        continue
-      }
-      position.set((position.x + 2) % 100, (position.y + 2) % 100)
-    }
-  }
-}
-
-class CollisionSystem extends hadys.ECS.System('CollisionSystem') {
-  _filters = {
-    bodies: new hadys.ECS.Filter([
-      new hadys.ECS.Includes([hadys.plugins.physics.components.Body]),
-    ]),
-  }
-
-  private _collisions!: hadys.plugins.physics.extensions.CollisionDetector
-
-  init() {
-    super.init()
-    this._collisions = this.world.getExtension(
-      hadys.plugins.physics.extensions.CollisionDetector,
-    )
-  }
-
-  update() {
-    for (const event of this._collisions.collisions.start) {
-      const [a] = event.pairs
-      const { vertex } = a.contacts[a.contacts.length - 1]
-      this._createHit(vertex)
-    }
-  }
-
-  private _createHit(position: { x: number; y: number }) {
-    const entityContainer = createContainer(this.world, position)
-    this.world.addComponent(entityContainer, new TimeToRemove(1000))
-
-    const graphicEntity = this.world.addEntity()
-    const graphics = new hadys.plugins.render.Graphics()
-    graphics.beginFill(0xff0000)
-    graphics.drawCircle(0, 0, 10)
-    graphics.endFill()
-    graphics.pivot.set(5, 5)
-    this.world.addComponent(
-      graphicEntity,
-      new hadys.plugins.render.components.DisplayObject(graphics),
-    )
-    this.world.addComponent(
-      graphicEntity,
-      new hadys.core.components.Hierarchy(entityContainer),
-    )
-  }
-}
-
-class FPSDisplaySystem extends hadys.ECS.System('FPSDisplaySystem') {
-  _filters = {
-    time: worldTimeFilter,
-    views: new hadys.ECS.Filter([
-      new hadys.ECS.Includes([
-        hadys.plugins.render.components.DisplayObject,
-        FPSTag,
-      ]),
-    ]),
-  }
-
-  update() {
-    const time = this._filters.time.first()!
-    const delta = time.components.get(hadys.core.components.Time)!.delta
-
-    for (const filter of this._filters.views) {
-      const displayObject = filter.components.get(
-        hadys.plugins.render.components
-          .DisplayObject<hadys.plugins.render.Text>,
-      )!
-      const text = displayObject.object
-      text.text = `${Math.round(1000 / delta)} FPS`
-    }
-  }
-}
+import { hadys } from '../../lib/main'
+import { CollisionSystem } from './CollisionSystem'
+import { FPSTag, MovableTag } from './components'
+import { FPSDisplaySystem } from './FPSDisplaySystem'
+import { RemoveByTimeSystem } from './RemoveByTimeSystem'
+import { SimpleMoveSystem } from './SimpleMoveSystem'
 
 export function startGame(viewContainer: HTMLDivElement) {
   const api = { clear: () => {} }
@@ -318,7 +190,7 @@ function addFPSText(
   engine.world.addComponent(textFPSEntity, new FPSTag())
 }
 
-function createContainer(
+export function createContainer(
   world: hadys.ECS.IWorld,
   position: { x: number; y: number },
 ) {
