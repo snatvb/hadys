@@ -15,6 +15,7 @@ export interface IBaseSystem {
   type: Symbol
   world: IWorld
   init(): void
+  prepareFilters(): void
   validate(): boolean
   updateEntity(entity: Entity, components: ComponentContainer): void
   deleteEntity(entity: Entity): void

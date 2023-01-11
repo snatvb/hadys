@@ -8,45 +8,36 @@ import { SimpleMoveSystem } from './SimpleMoveSystem'
 export function startGame(viewContainer: HTMLDivElement) {
   const api = { clear: () => {} }
   ;(async () => {
-    const engine = hadys.create()
-    const corePlugin = hadys.plugins.core.create()
-    const physicsPlugin = hadys.plugins.physics.create({ engine: {} })
-    const renderPlugin = hadys.plugins.render.create(engine, {
+    const builder = new hadys.Builder()
+    const physicsPlugin = hadys.plugins.physics.create()
+    const renderPlugin = hadys.plugins.render.create(builder.context, {
       size: {
         width: 800,
         height: 600,
       },
       resolution: 2,
     })
+    builder
+      .addPlugin(physicsPlugin)
+      .addPlugin(hadys.plugins.core.create())
+      .addPlugin(
+        hadys.plugins.debug.create(physicsPlugin.engine, renderPlugin.app),
+      )
+      .addSystem(new CollisionSystem())
+      .addSystem(new SimpleMoveSystem())
+      .addSystem(new FPSDisplaySystem())
+      .addSystem(new RemoveByTimeSystem())
+      .addPlugin(renderPlugin)
+      .build()
 
     const view = renderPlugin.app.view as HTMLCanvasElement
     view.style.background = 'transparent'
     view.style.width = '100%'
     view.style.height = '100%'
     viewContainer.appendChild(renderPlugin.app.view as HTMLCanvasElement)
-    const debugPlugin = hadys.plugins.debug.create(
-      physicsPlugin.engine,
-      renderPlugin.app,
-    )
+    hadys.core.entities.time(builder.world)
 
-    engine.world.setExtensions([
-      ...corePlugin.extensions,
-      ...physicsPlugin.extensions,
-      ...renderPlugin.extensions,
-    ])
-    engine.world.setSystems([
-      ...physicsPlugin.systems,
-      new CollisionSystem(),
-      new SimpleMoveSystem(),
-      new FPSDisplaySystem(),
-      ...corePlugin.systems,
-      ...renderPlugin.systems,
-      ...debugPlugin.systems,
-      new RemoveByTimeSystem(),
-    ])
-    hadys.core.entities.time(engine.world)
-
-    await engine.assets.loadResources({
+    await builder.assets.loadResources({
       sprites: {
         logo: {
           name: 'logo',
@@ -59,27 +50,30 @@ export function startGame(viewContainer: HTMLDivElement) {
       },
     })
 
-    const rootEntity = engine.world.addEntity()
-    engine.world.addComponent(rootEntity, new hadys.core.components.Hierarchy())
-    addMainSprite(engine, rootEntity)
+    const rootEntity = builder.world.addEntity()
+    builder.world.addComponent(
+      rootEntity,
+      new hadys.core.components.Hierarchy(),
+    )
+    addMainSprite(builder.context, rootEntity)
 
-    addDangerCircle(engine, { x: 100, y: 100 })
-    addDangerCircle(engine, { x: 70, y: 200 })
-    addDangerCircle(engine, { x: 300, y: 200 })
-    addDangerCircle(engine, { x: 500, y: 200 })
-    addDangerCircle(engine, { x: 300, y: 100 })
+    addDangerCircle(builder.context, { x: 100, y: 100 })
+    addDangerCircle(builder.context, { x: 70, y: 200 })
+    addDangerCircle(builder.context, { x: 300, y: 200 })
+    addDangerCircle(builder.context, { x: 500, y: 200 })
+    addDangerCircle(builder.context, { x: 300, y: 100 })
 
     for (let i = 0; i < 10; i++) {
-      addDangerCircle(engine, { x: i * 60 + 100, y: 0 })
+      addDangerCircle(builder.context, { x: i * 60 + 100, y: 0 })
     }
-    createFloor(engine)
+    createFloor(builder.context)
 
     const intervalId = window.setInterval(() => {
-      engine.world.update()
+      builder.world.update()
     }, 16)
     api.clear = () => {
       clearInterval(intervalId)
-      engine.world.destroy()
+      builder.world.destroy()
     }
   })()
 

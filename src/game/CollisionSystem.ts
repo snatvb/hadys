@@ -12,7 +12,6 @@ export class CollisionSystem extends hadys.ECS.System('CollisionSystem') {
   private _collisions!: hadys.plugins.physics.extensions.CollisionDetector
 
   init() {
-    super.init()
     this._collisions = this.world.getExtension(
       hadys.plugins.physics.extensions.CollisionDetector,
     )

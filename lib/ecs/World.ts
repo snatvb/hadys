@@ -47,6 +47,12 @@ export class World implements IWorld {
     return this._entities.size
   }
 
+  public start() {
+    this._extensions.beforeUpdatable.forEach((extension) => extension.init())
+    this._extensions.afterUpdatable.forEach((extension) => extension.init())
+    this._systems.all.forEach((system) => system.init())
+  }
+
   addEntity(): Entity {
     let entity = this._nextEntityID
     this._nextEntityID++
@@ -155,7 +161,7 @@ export class World implements IWorld {
 
   private _addSystem(system: IBaseSystem): void {
     system.world = this
-    system.init()
+    system.prepareFilters()
 
     if (system.validate() == false) {
       return

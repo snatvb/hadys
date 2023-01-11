@@ -19,7 +19,9 @@ export function System(type: Symbol | string) {
     public sort: ISystem['sort'] = { type: 'none' }
     public world!: IWorld
 
-    public init() {
+    public init(): void {}
+
+    public prepareFilters() {
       this._filterValues = Object.values(this._filters)
       for (let filter of this._filterValues) {
         filter.system = this

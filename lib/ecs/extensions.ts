@@ -20,10 +20,12 @@ export interface IComponentRemovable {
 
 export interface IBeforeUpdatable {
   beforeUpdate(): void
+  init(): void
 }
 
 export interface IAfterUpdatable {
   afterUpdate(): void
+  init(): void
 }
 
 type PartialSigns = Partial<
@@ -83,4 +85,5 @@ export const isComponentRemovable = (
 export abstract class Extension implements IExtension {
   public world!: IWorld
   public destroy(): void {}
+  public init(): void {}
 }

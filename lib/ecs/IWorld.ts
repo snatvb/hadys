@@ -5,6 +5,7 @@ import { ExtensionClass, IExtension } from './extensions'
 import { ISystem } from './ISystem'
 
 export interface IWorld {
+  start(): void
   addEntity(): Entity
   removeEntity(entity: Entity): void
   addComponent(entity: Entity, component: Component): void
