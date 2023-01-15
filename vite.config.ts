@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import { resolve } from 'path'
+import dts from 'vite-plugin-dts'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,10 +9,10 @@ export default defineConfig({
     lib: {
       // Could also be a dictionary or array of multiple entry points
       entry: resolve(__dirname, 'lib/main.ts'),
-      name: 'sok-engine',
+      name: 'hadys',
       // the proper extensions will be added
-      fileName: 'sok-engine',
+      fileName: 'hadys',
     },
   },
-  plugins: [react()],
+  plugins: [react(), dts()],
 })

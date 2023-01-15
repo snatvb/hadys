@@ -33,7 +33,7 @@ export class Assets implements IAssets {
     return PixiAssets.detections
   }
 
-  get cache() {
+  get cache(): typeof PixiAssets.cache {
     return PixiAssets.cache
   }
 

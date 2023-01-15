@@ -13,8 +13,8 @@ export const isUpdatableSystem = (
 
 export function System(type: Symbol | string) {
   return class System implements IBaseSystem {
-    protected readonly _filters: Record<string, IFilter> = {}
-    private _filterValues!: IFilter[]
+    readonly _filters: Record<string, IFilter> = {}
+    _filterValues!: IFilter[]
     public static Type: Symbol = typeof type === 'string' ? Symbol(type) : type
     public sort: ISystem['sort'] = { type: 'none' }
     public world!: IWorld
