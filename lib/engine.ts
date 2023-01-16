@@ -1,10 +1,11 @@
+import { Loop } from './loop'
 import { Assets } from './assets'
 import { Builder } from './builder'
 import { ECS } from './ecs'
 export * from './plugins/core'
 import * as plugins from './plugins'
 
-export { ECS, plugins, Builder }
+export { ECS, plugins, Builder, Loop }
 
 export const create = () => {
   const assets = new Assets()

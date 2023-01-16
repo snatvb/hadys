@@ -21,6 +21,13 @@ export interface IAssets extends Omit<AssetsClass, 'resolver'> {
 export class Assets implements IAssets {
   constructor() {}
 
+  get preferWorkers(): boolean {
+    return PixiAssets.preferWorkers
+  }
+  set preferWorkers(value: boolean) {
+    PixiAssets.preferWorkers = value
+  }
+
   async loadResources(resources: Resources): Promise<void> {
     const names = Object.values(resources.sprites).map((resource) => {
       this.add(resource.name, resource.path)

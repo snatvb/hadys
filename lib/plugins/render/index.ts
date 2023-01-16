@@ -4,6 +4,7 @@ import { Config, Dependencies, RenderApp } from './interfaces'
 import { SyncContainerSystem } from './systems'
 
 export { Sprite, Text, Graphics } from 'pixi.js'
+export { RenderExtension }
 
 export * as components from './components'
 export * as systems from './systems'
