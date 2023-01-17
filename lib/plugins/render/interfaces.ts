@@ -6,12 +6,8 @@ export interface Size {
   height: number
 }
 
-export interface Config {
+export interface Config extends PIXI.IApplicationOptions {
   size: Size
-  backgroundColor?: number
-  antialias?: boolean
-  resolution?: number
-  view?: HTMLCanvasElement
 }
 
 export interface Dependencies {
