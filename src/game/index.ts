@@ -11,10 +11,8 @@ export function startGame(viewContainer: HTMLDivElement) {
     const builder = new hadys.Builder()
     const physicsPlugin = hadys.plugins.physics.create()
     const renderPlugin = hadys.plugins.render.create(builder.context, {
-      size: {
-        width: 800,
-        height: 600,
-      },
+      width: 800,
+      height: 600,
       resolution: 2,
     })
     builder

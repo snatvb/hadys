@@ -6,9 +6,7 @@ export interface Size {
   height: number
 }
 
-export interface Config extends PIXI.IApplicationOptions {
-  size: Size
-}
+export interface Config extends PIXI.IApplicationOptions {}
 
 export interface Dependencies {
   assets: Assets
