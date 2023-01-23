@@ -2,7 +2,7 @@ export type { IWorld } from './IWorld'
 export type { ComponentClass, BaseComponentClass } from './component'
 export type { Entity } from './entity'
 export type { ISystem, IBaseSystem } from './ISystem'
-export type { IFilter } from './IFilter'
+export type { IFilter, FilterItem } from './IFilter'
 export type { IRule } from './rules'
 export type { IExtension } from './extensions'
 
