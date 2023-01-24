@@ -59,4 +59,8 @@ export class Vec2 {
   toString(): string {
     return `Vec2(${this._x}, ${this._y})`
   }
+
+  clone(): Vec2 {
+    return new Vec2(this._x, this._y)
+  }
 }
