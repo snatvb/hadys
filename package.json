@@ -1,7 +1,6 @@
 {
   "name": "hadys",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "main": "./dist/hadys.cjs",
   "module": "./dist/hadys.mjs",
   "types": "./dist/lib/main.d.ts",
