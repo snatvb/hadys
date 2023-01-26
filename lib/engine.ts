@@ -5,6 +5,11 @@ import { ECS } from './ecs'
 export * from './plugins/core'
 import * as plugins from './plugins'
 
+export const components = {
+  ...plugins.core.components,
+  ...plugins.render.components,
+}
+
 export { ECS, plugins, Builder, Loop }
 
 export const create = () => {

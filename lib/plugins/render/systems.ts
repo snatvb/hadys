@@ -33,7 +33,7 @@ export class SyncContainerSystem extends ECS.System(
       if (!ccParent.has(components.Container)) {
         return undefined
       }
-      const { container: containerParent } = ccParent.get(components.Container)!
+      const { object: containerParent } = ccParent.get(components.Container)!
       const hierarchyParent = ccParent.get(core.components.Hierarchy)!
       return {
         container: containerParent,
@@ -48,7 +48,7 @@ export class SyncContainerSystem extends ECS.System(
       (kind: 'onAppeared' | 'onDisappeared') =>
       (entity: ECS.Entity, cc: ECS.ComponentContainer) => {
         const hierarchy = cc.get(core.components.Hierarchy)!
-        const { container } = cc.get(components.Container)!
+        const { object: container } = cc.get(components.Container)!
         const parent = this._getParentWithContainer(hierarchy)
         if (kind === 'onAppeared') {
           if (parent) {
@@ -82,7 +82,7 @@ export class SyncContainerSystem extends ECS.System(
         }
 
         const ccParent = this.world.getComponents(hierarchy.parent)!
-        const { container } = ccParent.get(components.Container)!
+        const { object: container } = ccParent.get(components.Container)!
         if (kind === 'onAppeared') {
           container.addChild(object)
         } else {
@@ -98,7 +98,7 @@ export class SyncContainerSystem extends ECS.System(
     for (const item of this._filters.containers) {
       const transform = item.components.get(core.components.Transform)!
       if (transform.dirty) {
-        const { container } = item.components.get(components.Container)!
+        const { object: container } = item.components.get(components.Container)!
         container.position.set(transform.position.x, transform.position.y)
         container.scale.set(transform.scale.x, transform.scale.y)
         container.rotation = transform.rotation.angle

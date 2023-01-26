@@ -13,7 +13,7 @@ export class DisplayObject<T extends PIXI.DisplayObject> extends ECS.Component {
 }
 
 export class Container extends ECS.Component {
-  constructor(public container: PIXI.Container = new PIXI.Container()) {
+  constructor(public object: PIXI.Container = new PIXI.Container()) {
     super()
   }
 }
