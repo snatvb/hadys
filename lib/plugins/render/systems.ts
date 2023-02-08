@@ -29,8 +29,8 @@ export class SyncContainerSystem extends ECS.System(
 
   private _getParentWithContainer(hierarchy: core.components.Hierarchy) {
     if (hierarchy.parent) {
-      const ccParent = this.world.getComponents(hierarchy.parent)!
-      if (!ccParent.has(components.Container)) {
+      const ccParent = this.world.getComponents(hierarchy.parent)
+      if (!ccParent || !ccParent.has(components.Container)) {
         return undefined
       }
       const { object: containerParent } = ccParent.get(components.Container)!
@@ -81,7 +81,10 @@ export class SyncContainerSystem extends ECS.System(
           return console.warn('Sprite has no parent')
         }
 
-        const ccParent = this.world.getComponents(hierarchy.parent)!
+        const ccParent = this.world.getComponents(hierarchy.parent)
+        if (!ccParent) {
+          return
+        }
         const { object: container } = ccParent.get(components.Container)!
         if (kind === 'onAppeared') {
           container.addChild(object)
