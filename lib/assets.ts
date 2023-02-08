@@ -5,7 +5,7 @@ import {
 } from '@pixi/assets'
 
 export type Resources = {
-  sprites: Record<
+  [ctx: string]: Record<
     string,
     {
       name: string
@@ -29,10 +29,13 @@ export class Assets implements IAssets {
   }
 
   async loadResources(resources: Resources): Promise<void> {
-    const names = Object.values(resources.sprites).map((resource) => {
-      this.add(resource.name, resource.path)
-      return resource.name
-    })
+    const names = Object.entries(resources).flatMap(([ctx, values]) =>
+      Object.values(values).map((resource) => {
+        const name = `${ctx}.${resource.name}`
+        this.add(name, resource.path)
+        return name
+      }),
+    )
     await this.load(names)
   }
 
