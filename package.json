@@ -19,12 +19,11 @@
       "require": "./dist/hadys.cjs"
     }
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@pixi/assets": "^7.1.0",
     "matter-js": "^0.18.0",
-    "pixi.js": "^7.1.0"
-  },
-  "devDependencies": {
+    "pixi.js": "^7.1.0",
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "@types/jest": "^29.2.5",
     "@types/matter-js": "^0.18.2",
