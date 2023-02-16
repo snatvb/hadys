@@ -1,13 +1,21 @@
 export class Vec2 {
   private _x: number = 0
+  private _y: number = 0
+
+  public get y(): number {
+    return this._y
+  }
 
   public get x(): number {
     return this._x
   }
 
-  private _y: number = 0
-  public get y(): number {
-    return this._y
+  public set x(value: number) {
+    this.set(value, this._y)
+  }
+
+  public set y(value: number) {
+    this.set(this._x, value)
   }
 
   static from(other: { x: number; y: number }): Vec2 {
