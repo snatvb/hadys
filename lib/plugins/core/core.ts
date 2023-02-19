@@ -1,13 +1,13 @@
 import { IWorld } from '../../ecs/IWorld'
 import { DirtiesExtension } from './extensions/dirties'
-import { OneFramesExtension } from './extensions/one-frames'
+import { OneFrameComponent, OneFramesExtension } from './extensions/one-frames'
 import { HierarchySystem, TimeSystem } from './systems'
 
 import * as components from './components'
 import * as geometry from './geometry'
 import { HierarchyExtension } from './extensions/hirarchy'
 
-export { components, geometry }
+export { components, geometry, OneFrameComponent }
 
 export const create = () => {
   return {
