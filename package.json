@@ -19,11 +19,11 @@
       "require": "./dist/hadys.cjs"
     }
   },
-  "dependencies": {},
+  "dependencies": {
+    "pixi-spine": "^4.0.3"
+  },
   "devDependencies": {
     "@pixi/assets": "^7.1.0",
-    "matter-js": "^0.18.0",
-    "pixi.js": "^7.1.0",
     "@trivago/prettier-plugin-sort-imports": "^4.0.0",
     "@types/jest": "^29.2.5",
     "@types/matter-js": "^0.18.2",
@@ -32,6 +32,8 @@
     "@types/react-dom": "^18.0.10",
     "@vitejs/plugin-react-swc": "^3.0.1",
     "jest": "^29.3.1",
+    "matter-js": "^0.18.0",
+    "pixi.js": "^7.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "ts-jest": "^29.0.5",
