@@ -1,5 +1,5 @@
 import 'pixi-spine'
-export * as PS from 'pixi-spine'
+export * as pixiSpine from 'pixi-spine'
 export { Spine } from 'pixi-spine'
 export * as hadys from './engine'
 import * as PIXI from 'pixi.js'
